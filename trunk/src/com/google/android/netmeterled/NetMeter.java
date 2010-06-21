@@ -146,6 +146,7 @@ public class NetMeter extends Activity {
     	case R.id.stop:
     		stopService(new Intent(this, NetMeterService.class));
     		(new ChargingLEDLib()).turnOffAllLEDs();
+    		(new ChargingLEDLib()).resetLEDBrightness();
     		finish();
     		break;
     	}

@@ -23,7 +23,7 @@ public class ChargingLEDLib
 	private final static int HIGH_THRESHHOLD = 75;// amber
 	// above high=RED
 	private boolean blue, red, amber, green, initialized;
-	private static boolean  debug=false;
+	private static boolean  debug=true;
 	
 	private final static String[] turnOffCommands =
 	{
@@ -54,6 +54,7 @@ public class ChargingLEDLib
 		if (initialized == false)
 		{
 			turnOffAllLEDs();
+			resetLEDBrightness();
 			initialized = true;
 		}
 		
@@ -261,6 +262,13 @@ public class ChargingLEDLib
 	{
 		if(color!=null && color.length()>0 && value >=0 && value <=255)
 			runRootCommand("echo "+value +" > /sys/devices/i2c-0/0-0066/leds/"+color+"/max_brightness");
+	}
+
+	public void resetLEDBrightness()
+	{
+			runRootCommand("echo 255 > /sys/devices/i2c-0/0-0066/leds/red/max_brightness");
+			runRootCommand("echo 255 > /sys/devices/i2c-0/0-0066/leds/green/max_brightness");
+			runRootCommand("echo 255 > /sys/devices/i2c-0/0-0066/leds/blue/max_brightness");
 	}
 }
 
