@@ -3,27 +3,27 @@
     <string name="app_name">NetMeter+LED</string>
     <string name="top_title">CPU activity by Task (last 30s)</string>
     <string name="help_title">NetMeter Help</string>
-    <string name="iconized">NetMeter display</string>    
+    <string name="iconized">NetMeter display</string>
     <string name="menu_reset">reset</string>
     <string name="menu_toggle">toggle scale</string>
     <string name="menu_top">show tasks</string>
     <string name="menu_stop">stop</string>
     <string name="menu_help">help</string>
     <string name="disp_wifi">Wifi</string>
-    <string name="disp_cell">Cell</string>  
+    <string name="disp_cell">Cell</string>
     <string name="disp_cpu">CPU load</string>
     <string name="disp_cpu_type"> (app/kernel)</string>
     <string name="disp_battery">Battery</string>
     <string name="disp_name">Name</string>
     <string name="disp_type">Speed</string>
     <string name="disp_in">Bytes in</string>
-    <string name="disp_out">Bytes out</string>  
+    <string name="disp_out">Bytes out</string>
     <string name="disp_user">apps</string>
-    <string name="disp_system">kernel</string>  
+    <string name="disp_system">kernel</string>
     <string name="disp_collecting">Collecting Data...</string>
     <string name="help_text">
     \n
-    \n<big><b>NetMeter+LED v0.5</b> - Network and CPU performance monitor</big>\n
+    \n<big><b>NetMeter+LED v0.6</b> - Network and CPU performance monitor</big>\n
     \n
     NetMeter allows to trouble-shoot performance problems by letting the user see network and CPU usage
     over time. On a mobile device, battery power is one of the most critical resources.
@@ -38,14 +38,14 @@
     Use <i>\"stop\"</i> from the menu to close down NetMeter and stop the data collection. The <i>\"reset\"</i> menu option will
     reset the cumulative network usage counters in the tabular display part of the screen, without affecting the
     usage history graph. By default, the history graph shows the maximum amount of available data (max 24h) since
-    NetMeter has been started. Use the <i>\"toggle scale\"</i> menu option to switch between shorter, more detailed views 
+    NetMeter has been started. Use the <i>\"toggle scale\"</i> menu option to switch between shorter, more detailed views
     of the recent past.\n
     \n
     <b>Finding out which apps consume CPU</b>\n
     To see a detailed breakdown of CPU utilization by tasks, use the <i>\"show tasks\"</i> menu option.
     It will show which processes in the Android platform have been using CPU during
     the last 30s and how much. Android does not allow applications to terminate other application processes -
-    this is part of its security model. The Android framework itself manages processes and other OS resources 
+    this is part of its security model. The Android framework itself manages processes and other OS resources
     transparently based on
     application demand. Terminating a process would simply result in it being restarted again if the application
     still requests to run. Android provides great power and flexibility to application developers, like installing

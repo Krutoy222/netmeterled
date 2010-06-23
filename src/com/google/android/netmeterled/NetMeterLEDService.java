@@ -34,39 +34,39 @@ import android.widget.TextView;
 
 /**
  * Local service which operates in close cooperation with NetMeter activity.
- * 
+ *
  * Execute monitoring through periodic polling, update in-memory history
  * buffers and update display if linkage has been established by the
  * activity after binding to the service.
- * 
+ *
  * Whenever running, maintain a persistent notification in the status bar, which
  * sends an intent to (re)start NetMeter activity.
  */
-public class NetMeterService extends Service {
+public class NetMeterLEDService extends Service {
 	final private String TAG="NetMeterService";
 	final private int SAMPLING_INTERVAL = 5;
-	
+
 	private NotificationManager mNM;
-	
+
 	/**
-	 * 
+	 *
 	 * Binder implementation which passes through a reference to
 	 * this service. Since this is a local service, the activity
 	 * can then call directly methods on this service instance.
 	 */
 	public class NetMeterBinder extends Binder {
-        NetMeterService getService() {
-            return NetMeterService.this;
+        NetMeterLEDService getService() {
+            return NetMeterLEDService.this;
         }
     }
 	private final IBinder mBinder = new NetMeterBinder();
-	
+
 	// various stats collection objects
 	private StatsProcessor mStatsProc;
 	private CpuMon mCpuMon;
 	private GraphView mGraph = null;
 	private long mLastTime;
-	
+
 	// All the polling and display updating is driven from this
 	// hander which is periodically executed every SAMPLING_INTERVAL seconds.
 	private Handler mHandler = new Handler();
@@ -78,7 +78,7 @@ public class NetMeterService extends Service {
 			if (last_time - mLastTime > 10 * SAMPLING_INTERVAL * 1000) {
 				int padding = (int) ((last_time - mLastTime) / (SAMPLING_INTERVAL * 1000));
 				mCpuMon.getHistory().pad(padding);
-				
+
 				Vector<StatCounter> counters = mStatsProc.getCounters();
 				for (int i = 0; i < counters.size(); i++) {
 					counters.get(i).getHistory().pad(padding);
@@ -97,15 +97,15 @@ public class NetMeterService extends Service {
 	public void resetCounters() {
 		mStatsProc.reset();
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * Link the display objects set up by the controller activity
 	 * to the service so that they can be updated with the latest
 	 * state after each polling interval
-	 * 
+	 *
 	 * In retrospect, this is probably a rather hacky architecture.
-	 * 
+	 *
 	 * @param stats_views text view to display network counters
 	 * @param info_views text views to display network status info
 	 * @param cpu_views text views to display CPU usage information
@@ -121,7 +121,7 @@ public class NetMeterService extends Service {
 		graph.linkCounters(mStatsProc.getCounters(),
 						mCpuMon.getHistory());
 	}
-	 
+
 	/**
 	 * Framework method called when the service is first created.
 	 */
@@ -131,20 +131,21 @@ public class NetMeterService extends Service {
 		WifiManager wifi = (WifiManager)getSystemService(WIFI_SERVICE);
 		TelephonyManager cellular = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 		ConnectivityManager cx = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
-		
+
 		mStatsProc = new StatsProcessor(SAMPLING_INTERVAL, cellular, wifi, cx);
 		mCpuMon = new CpuMon();
-		
+
 		mStatsProc.processUpdate();
 		mStatsProc.reset();
 		mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-		
+
 		//postNotification();
 		mLastTime = SystemClock.elapsedRealtime();
 		mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
-		setForeground(true);
+		//deprecated
+		//setForeground(true);
 	}
-	
+
 	/**
 	 * Framework method called when the service is stopped/destroyed
 	 */
@@ -175,7 +176,7 @@ public class NetMeterService extends Service {
 		mGraph = null;
 		return true;
 	}
-	
+
 	/**
 	 * Set up the notification in the status bar, which can be used to restart the
 	 * NetMeter main display activity.
@@ -202,5 +203,5 @@ public class NetMeterService extends Service {
     	mNM.notify(R.string.iconized, notification);
 
     }
-	
+
 }
