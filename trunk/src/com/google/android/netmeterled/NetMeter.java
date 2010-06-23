@@ -36,10 +36,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/** 
- * 
+/**
+ *
  * Main controller activity for NetMeter application.
- * 
+ *
  * Creates the display (table plus graph view) and connects to
  * the NetMeterService, starting it if necessary. Since the service
  * will directly update the display when it generates new data, references
@@ -47,25 +47,25 @@ import android.widget.Toast;
  */
 public class NetMeter extends Activity {
 	 private String TAG;
-	
-	private NetMeterService mService;
+
+	private NetMeterLEDService mService;
 	private Vector<TextView> mStatsFields;
 	private Vector<TextView> mInfoFields;
 	private Vector<TextView> mCpuFields;
-	
+
 	//private PowerMon mPower;
-	
+
 	private GraphView mGraph;
-	
+
 	/**
-	 * Service connection callback object used to establish communication with 
+	 * Service connection callback object used to establish communication with
 	 * the service after binding to it.
 	 */
 	private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-            
+
         	// Get reference to (local) service from binder
-            mService = ((NetMeterService.NetMeterBinder)service).getService();
+            mService = ((NetMeterLEDService.NetMeterBinder)service).getService();
             Log.i(TAG, "service connected");
             // link up the display elements to be updated by the service
             mService.setDisplay(mStatsFields, mInfoFields, mCpuFields, mGraph);
@@ -77,37 +77,37 @@ public class NetMeter extends Activity {
         }
     };
 
-	
-    /** 
-     * Framework method called when the activity is first created. 
+
+    /**
+     * Framework method called when the activity is first created.
      * */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         TAG=this.getResources().getText(R.string.app_name).toString();
-        Log.i(TAG, "onCreate");
-        startService(new Intent(this, NetMeterService.class));
+        //Log.i(TAG, "onCreate");
+        startService(new Intent(this, NetMeterLEDService.class));
 
-        Log.i(TAG, "checking intent for parameters");
+        //Log.i(TAG, "checking intent for parameters");
         if(this.getIntent()!=null && this.getIntent().getExtras()!=null && this.getIntent().getExtras().getBoolean("start_minimized"))
         {
-        	Log.i(TAG, "hiding window.");
+        	//Log.i(TAG, "hiding window.");
             this.moveTaskToBack(true);
         	Toast.makeText(this,TAG +" sent to the background.", Toast.LENGTH_SHORT).show();
         	return;
-        	
+
         }
-        
+
         setContentView(R.layout.main);
         mStatsFields = new Vector<TextView>();
         mInfoFields = new Vector<TextView>();
         mCpuFields = new Vector<TextView>();
-        
+
         mGraph = (GraphView)findViewById(R.id.graph);
-        
+
         createTable();
 
-        
+
     }
 
     /**
@@ -144,7 +144,7 @@ public class NetMeter extends Activity {
     		startActivity(myIntent);
     		break;
     	case R.id.stop:
-    		stopService(new Intent(this, NetMeterService.class));
+    		stopService(new Intent(this, NetMeterLEDService.class));
     		(new ChargingLEDLib()).turnOffAllLEDs();
     		(new ChargingLEDLib()).resetLEDBrightness();
     		finish();
@@ -155,15 +155,15 @@ public class NetMeter extends Activity {
 
     /**
      * Framework method called when activity becomes the foreground activity.
-     * 
+     *
      * onResume/onPause implement the most narrow window of activity life-cycle
      * during which the activity is in focus and foreground.
      */
     @Override
     public void onResume() {
     	super.onResume();
-    	bindService(new Intent(this, 
-                NetMeterService.class), mConnection, Context.BIND_AUTO_CREATE);
+    	bindService(new Intent(this,
+                NetMeterLEDService.class), mConnection, Context.BIND_AUTO_CREATE);
 
     }
 
@@ -175,7 +175,7 @@ public class NetMeter extends Activity {
     	super.onPause();
     	unbindService(mConnection);
     }
- 
+
     /**
      *  Algorithmically generate the table on the top half of the screen,
      *  which is used to display status and cummulative usage of
@@ -184,7 +184,7 @@ public class NetMeter extends Activity {
      */
     private void createTable() {
     	TableLayout table = (TableLayout)findViewById(R.id.disp);
-    	
+
     	mInfoFields.addElement(createTableRow(table, R.string.disp_cell, -1, 0));
     	mStatsFields.addElement(createTableRow(table, -1, R.string.disp_in, 0));
     	mStatsFields.addElement(createTableRow(table, -1, R.string.disp_out, 0));
@@ -196,15 +196,15 @@ public class NetMeter extends Activity {
     	mCpuFields.addElement(createTableRow(table, R.string.disp_cpu,
     				R.string.disp_cpu_type, 0));
     }
-    
+
     /**
      * Helper function to generate a table row based on 4 integer arguments which
      * represent the column cells in the row.
-     * 
+     *
      * If the associated value is -1, the cell is invisible, if it is 0, the cell is set
      * to an empty text and otherwise the number is assumed to be the ID of a text
      * resource.
-     * 
+     *
      */
     private TextView createTableRow(TableLayout table, int c1, int c2, int c3) {
     	int[] cell_text_ids = {c1, c2, c3};

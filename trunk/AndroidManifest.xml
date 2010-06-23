@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.google.android.netmeterled" android:versionCode="7"
-	android:versionName="0.5">
+	package="com.google.android.netmeterled" android:versionCode="7" android:versionName="0.6">
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-		
+
 	<application android:icon="@drawable/icon" android:label="@string/app_name">
 		<receiver android:name=".BootCompletedReciever">
 			<intent-filter>
@@ -13,7 +12,7 @@
 				<!-- <category android:name="android.intent.category.DEFAULT" /> -->
 			</intent-filter>
 		</receiver>
-		<service android:name=".NetMeterService" />
+		<service android:name=".NetMeterLEDService" />
 		<activity android:name=".NetMeter" android:label="@string/app_name">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -23,5 +22,5 @@
 		<activity android:name=".TaskList" android:label="@string/top_title" />
 		<activity android:name=".HelpActivity" android:label="@string/help_title" />
 	</application>
-	
-</manifest> 
+
+</manifest>
