@@ -9,43 +9,50 @@ import android.util.Log;
  * This library offers methods to set the charging LED color.
  *
  * @author britoso
- *
+ * green+blue= sky blue
+ * blue+amber= pink
  */
-
-// TODO:
-// 1: Adjust the max_brightness of each of the four LEDS
-// 2: Way to set a RGB color. setLEDcolor(r%,g%,b%), setLEDCOLOR(#RGB);
 public class ChargingLEDLib
 {
-	private final static int LOWEST_THRESHHOLD = 2;// off
-	private final static int LOW_THRESHHOLD = 15;// blue
+	private final static int LOWEST_THRESHHOLD = 2; // off
+	private final static int LOW_THRESHHOLD = 15;   // blue
 	private final static int MEDIUM_THRESHHOLD = 40;// green
-	private final static int HIGH_THRESHHOLD = 75;// amber
-	// above high=RED
+	private final static int HIGH_THRESHHOLD = 75;  // amber
+												    // above high=RED
 	private boolean blue, red, amber, green, initialized;
-	private static boolean  debug=true;
+	private final static boolean DEBUG=true;
 
 	private static final String DESIRE_PATH="platform/leds-microp";
 	private static final String NEXUS_PATH="i2c-0/0-0066";
+	//private static final String G1_PATH="i2c-0/0-0062";
 	private static String pathToUse=DESIRE_PATH;//default to this
 
+	private static final String NEXUS_ONE_MODEL = "Nexus One";
+	private static final String HTC_DESIRE_MODEL = "HTC Desire";
 
-	private static String[] turnOffCommands= new String[4];
+	private static String model=null;
 
 	private final static String TAG = "NetMeter+LED";
 	private static String SHELL_OPEN_COMMAND = "su";
+
+	private static final String COLOR_BLUE="blue",
+							    COLOR_GREEN="green",
+							    COLOR_AMBER="amber",
+							    COLOR_RED="red";
 
 	// keep the console used to issue commands open. more efficient
 	private static Process suConsole = null;
 	private static DataOutputStream os = null;
 
-	private void setTurnOffCommands()
+	private void initialize()
 	{
-		turnOffCommands[0]="echo 0 > /sys/devices/"+pathToUse+"/leds/"+"blue"+"/brightness";
-		turnOffCommands[1]="echo 0 > /sys/devices/"+pathToUse+"/leds/"+"green"+"/brightness";
-		turnOffCommands[2]="echo 0 > /sys/devices/"+pathToUse+"/leds/"+"amber"+"/brightness";
-		turnOffCommands[3]="echo 0 > /sys/devices/"+pathToUse+"/leds/"+"red"+"/brightness";
+		model=android.os.Build.MODEL;
+		Log.i(TAG,"Phone Model="+model);
+		setPathBasedOnModel();
+		turnOffAllLEDs();
+		resetLEDBrightness();//incase someone was playing with it.
 	}
+
 	/**
 	 * set the charging LED color appropriately
 	 *
@@ -55,15 +62,12 @@ public class ChargingLEDLib
 	 */
 	public void setLEDColor(int totalCPUInt)
 	{
-		if (debug) Log.d(TAG, "CPU=" + totalCPUInt);
+		if (DEBUG) Log.d(TAG, "CPU=" + totalCPUInt);
 
 		// turn off all colors once at the start.
 		if (initialized == false)
 		{
-			setPathBasedOnModel();//first
-			setTurnOffCommands();
-			turnOffAllLEDs();
-			resetLEDBrightness();//incase someone was playing with it.
+			initialize();
 			initialized = true;
 		}
 
@@ -77,7 +81,7 @@ public class ChargingLEDLib
 			{
 				turnOffAllLitLEDs();
 				blue = true;
-				turnOnLED("blue");
+				turnOnLED(COLOR_BLUE);
 			}
 		}
 		else if (totalCPUInt >= LOW_THRESHHOLD && totalCPUInt < MEDIUM_THRESHHOLD)
@@ -86,7 +90,7 @@ public class ChargingLEDLib
 			{
 				turnOffAllLitLEDs();
 				green = true;
-				turnOnLED("green");
+				turnOnLED(COLOR_GREEN);
 			}
 		}
 		else if (totalCPUInt >= MEDIUM_THRESHHOLD && totalCPUInt < HIGH_THRESHHOLD)
@@ -95,19 +99,24 @@ public class ChargingLEDLib
 			{
 				turnOffAllLitLEDs();
 				amber = true;
-				turnOnLED("amber");
+				turnOnLED(COLOR_AMBER);
 			}
 		}
 		else if (totalCPUInt >= HIGH_THRESHHOLD)
 		{
 			if (red == false)
 			{
-				red = true;
 				turnOffAllLitLEDs();
-				if(android.os.Build.MODEL.equalsIgnoreCase("HTC Desire"))
-					turnOnLED("amber");//desire has no red led
+				if(model.equalsIgnoreCase(HTC_DESIRE_MODEL))
+				{
+					turnOnLED(COLOR_AMBER);//desire has no red led
+					amber=true;
+				}
 				else
-					turnOnLED("red");
+				{
+					turnOnLED(COLOR_RED);
+					red = true;
+				}
 
 				//setHexColor("#00FFFF");
 			}
@@ -117,23 +126,27 @@ public class ChargingLEDLib
 
 	private void setPathBasedOnModel()
 	{
-		if(debug)Log.i(TAG,"Phone Model="+android.os.Build.MODEL);
-
-		if(android.os.Build.MODEL.equalsIgnoreCase("Nexus One"))
+		if(model.equalsIgnoreCase(NEXUS_ONE_MODEL))
 		{
 			pathToUse=NEXUS_PATH;
 			SHELL_OPEN_COMMAND="su";
 		}
-		if(android.os.Build.MODEL.equalsIgnoreCase("HTC Desire"))
+		if(model.equalsIgnoreCase(HTC_DESIRE_MODEL))
 		{
 			pathToUse=DESIRE_PATH;
 			SHELL_OPEN_COMMAND="sh";//root not needed
 		}
 
 	}
+
 	private void turnOnLED(String color)
 	{
 		runRootCommand("echo 1 > /sys/devices/"+pathToUse+"/leds/" + color + "/brightness");
+	}
+
+	private void turnOffLED(String color)
+	{
+		runRootCommand("echo 0 > /sys/devices/"+pathToUse+"/leds/" + color + "/brightness");
 	}
 
 	/**
@@ -143,28 +156,28 @@ public class ChargingLEDLib
 	{
 		if (blue)
 		{
-			runRootCommand(turnOffCommands[0]);
+			turnOffLED(COLOR_BLUE);
 			blue = false;
 		}
 
 		if (green)
 		{
-			runRootCommand(turnOffCommands[1]);
+			turnOffLED(COLOR_GREEN);
 			green = false;
 		}
 
 		if (amber)
 		{
-			runRootCommand(turnOffCommands[2]);
+			turnOffLED(COLOR_AMBER);
 			amber = false;
 		}
 
 		if (red)
 		{
-			if(android.os.Build.MODEL.equalsIgnoreCase("HTC Desire"))
-				runRootCommand(turnOffCommands[2]);//desire has no red led
+			if(model.equalsIgnoreCase(HTC_DESIRE_MODEL))
+				turnOffLED(COLOR_AMBER);//desire has no red led
 			else
-				runRootCommand(turnOffCommands[3]);
+				turnOffLED(COLOR_RED);
 			red = false;
 		}
 	}
@@ -174,7 +187,11 @@ public class ChargingLEDLib
 	 */
 	public void turnOffAllLEDs()
 	{
-		runRootCommands(turnOffCommands);
+		turnOffLED(COLOR_BLUE);
+		turnOffLED(COLOR_GREEN);
+		turnOffLED(COLOR_AMBER);
+		if(!model.equalsIgnoreCase(HTC_DESIRE_MODEL))
+			turnOffLED(COLOR_RED);
 	}
 
 	private boolean runRootCommand(String command)
@@ -187,7 +204,7 @@ public class ChargingLEDLib
 				suConsole = Runtime.getRuntime().exec(SHELL_OPEN_COMMAND);
 				os = new DataOutputStream(suConsole.getOutputStream());
 			}
-			if (debug) Log.d(TAG, "Running command: " + command);
+			if (DEBUG) Log.d(TAG, "Running command: " + command);
 			os.writeBytes(command + "\n");
 			os.flush();
 			synchronized (suConsole)
@@ -208,31 +225,23 @@ public class ChargingLEDLib
 		return true;
 	}
 
-	private void runRootCommands(String[] commands)
-	{
-		for (int i = 0; i < commands.length; i++)
-		{
-			runRootCommand(commands[i]);
-		}
-	}
-
 	public void setColor(int r, int g, int b)
 	{
 		turnOffAllLEDs();
 		if(r>0)
 		{
-			turnOnLED("red");
-			setLEDBrightness("red",r);
+			turnOnLED(COLOR_RED);
+			setLEDBrightness(COLOR_RED,r);
 		}
 		if(g>0)
 		{
-			turnOnLED("green");
-			setLEDBrightness("green",g);
+			turnOnLED(COLOR_GREEN);
+			setLEDBrightness(COLOR_GREEN,g);
 		}
 		if(b>0)
 		{
-			turnOnLED("blue");
-			setLEDBrightness("blue",b);
+			turnOnLED(COLOR_BLUE);
+			setLEDBrightness(COLOR_BLUE,b);
 		}
 	}
 
@@ -259,21 +268,21 @@ public class ChargingLEDLib
 
 		if(Color.red(inColor)>0)
 		{
-			turnOnLED("red");
+			turnOnLED(COLOR_RED);
 			Log.i(TAG,"setting red color brightness :"+Color.red(inColor));
-			setLEDBrightness("red",Color.red(inColor));
+			setLEDBrightness(COLOR_RED,Color.red(inColor));
 		}
 		if(Color.green(inColor)>0)
 		{
-			turnOnLED("green");
+			turnOnLED(COLOR_GREEN);
 			Log.i(TAG,"setting green color brightness :"+Color.green(inColor));
-			setLEDBrightness("green",Color.green(inColor));
+			setLEDBrightness(COLOR_GREEN,Color.green(inColor));
 		}
 		if(Color.blue(inColor)>0)
 		{
-			turnOnLED("blue");
+			turnOnLED(COLOR_BLUE);
 			Log.i(TAG,"setting blue color brightness :"+Color.blue(inColor));
-			setLEDBrightness("blue",Color.blue(inColor));
+			setLEDBrightness(COLOR_BLUE,Color.blue(inColor));
 		}
 	}
 
@@ -285,10 +294,13 @@ public class ChargingLEDLib
 
 	public void resetLEDBrightness()
 	{
-			runRootCommand("echo 255 > /sys/devices/"+pathToUse+"/red/max_brightness");
+		/*commented as it does not do anything
+			if(!model.equalsIgnoreCase(HTC_DESIRE_MODEL))
+				runRootCommand("echo 255 > /sys/devices/"+pathToUse+"/red/max_brightness");
 			runRootCommand("echo 255 > /sys/devices/"+pathToUse+"/green/max_brightness");
 			runRootCommand("echo 255 > /sys/devices/"+pathToUse+"/blue/max_brightness");
 			runRootCommand("echo 255 > /sys/devices/"+pathToUse+"/amber/max_brightness");
+		*/
 	}
 }
 
