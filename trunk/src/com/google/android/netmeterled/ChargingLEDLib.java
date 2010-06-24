@@ -20,25 +20,30 @@ public class ChargingLEDLib
 	private final static int HIGH_THRESHHOLD = 75;  // amber
 												    // above high=RED
 	private boolean blue, red, amber, green, initialized;
-	private final static boolean DEBUG=true;
+	private final static boolean DEBUG=false;
 
 	private static final String DESIRE_PATH="platform/leds-microp";
 	private static final String NEXUS_PATH="i2c-0/0-0066";
-	//private static final String G1_PATH="i2c-0/0-0062";
+	private static final String G1_PATH="i2c-0/0-0062";
 	private static String pathToUse=DESIRE_PATH;//default to this
 
 	private static final String NEXUS_ONE_MODEL = "Nexus One";
 	private static final String HTC_DESIRE_MODEL = "HTC Desire";
+	private static final String HTC_DREAM_MODEL = "HTC Dream";
+	private static final String TMOBILE_G1_MODEL = "T-Mobile G1";
+	private static final String ERA_G1_MODEL = "Era G1";
 
 	private static String model=null;
 
 	private final static String TAG = "NetMeter+LED";
-	private static String SHELL_OPEN_COMMAND = "su";
+	private static String SHELL_OPEN_COMMAND = "su";//default
 
 	private static final String COLOR_BLUE="blue",
 							    COLOR_GREEN="green",
-							    COLOR_AMBER="amber",
-							    COLOR_RED="red";
+							    COLOR_AMBER="amber",//G1 has no amber LED, so using red
+							    COLOR_RED="red";//Desire has no red LED, so using amber
+
+
 
 	// keep the console used to issue commands open. more efficient
 	private static Process suConsole = null;
@@ -98,8 +103,17 @@ public class ChargingLEDLib
 			if (amber == false)
 			{
 				turnOffAllLitLEDs();
-				amber = true;
-				turnOnLED(COLOR_AMBER);
+				//G1 has no amber led
+				if(pathToUse.equals(G1_PATH))
+				{
+					red=true;
+					turnOnLED(COLOR_RED);
+				}
+				else
+				{
+					amber = true;
+					turnOnLED(COLOR_AMBER);
+				}
 			}
 		}
 		else if (totalCPUInt >= HIGH_THRESHHOLD)
@@ -135,6 +149,12 @@ public class ChargingLEDLib
 		{
 			pathToUse=DESIRE_PATH;
 			SHELL_OPEN_COMMAND="sh";//root not needed
+		}
+		//G1 has 3 model names: HTC+Dream 	T-Mobile+G1 	Era+G1
+		if(model.equalsIgnoreCase(HTC_DREAM_MODEL)||model.equalsIgnoreCase(TMOBILE_G1_MODEL)||model.equalsIgnoreCase(ERA_G1_MODEL))
+		{
+			pathToUse=G1_PATH;
+			SHELL_OPEN_COMMAND="su";//root needed
 		}
 
 	}
@@ -174,10 +194,7 @@ public class ChargingLEDLib
 
 		if (red)
 		{
-			if(model.equalsIgnoreCase(HTC_DESIRE_MODEL))
-				turnOffLED(COLOR_AMBER);//desire has no red led
-			else
-				turnOffLED(COLOR_RED);
+			turnOffLED(COLOR_RED);
 			red = false;
 		}
 	}
@@ -189,7 +206,8 @@ public class ChargingLEDLib
 	{
 		turnOffLED(COLOR_BLUE);
 		turnOffLED(COLOR_GREEN);
-		turnOffLED(COLOR_AMBER);
+		if(!pathToUse.equals(G1_PATH))
+			turnOffLED(COLOR_AMBER);
 		if(!model.equalsIgnoreCase(HTC_DESIRE_MODEL))
 			turnOffLED(COLOR_RED);
 	}
