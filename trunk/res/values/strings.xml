@@ -23,7 +23,7 @@
     <string name="disp_collecting">Collecting Data...</string>
     <string name="help_text">
     \n
-    \n<big><b>NetMeter+LED v0.6</b> - Network and CPU performance monitor</big>\n
+    \n<big><b>NetMeter+LED v0.7</b> - Network and CPU performance monitor</big>\n
     \n
     NetMeter allows to trouble-shoot performance problems by letting the user see network and CPU usage
     over time. On a mobile device, battery power is one of the most critical resources.
