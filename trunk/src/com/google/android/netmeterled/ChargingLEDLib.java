@@ -9,60 +9,62 @@ import android.util.Log;
  * This library offers methods to set the charging LED color.
  *
  * @author britoso
+ * 
+ * color combinations:
  * green+blue= sky blue
  * blue+amber= pink
  */
 public class ChargingLEDLib
 {
-	private final static int LOWEST_THRESHHOLD 	= 2; 	// off
-	private final static int LOW_THRESHHOLD 			= 15;// blue
-	private final static int MEDIUM_THRESHHOLD 		= 40;// green
-	private final static int HIGH_THRESHHOLD 			= 75;// amber
+	private final static int LOWEST_THRESHHOLD 	= 2; // off
+	private final static int LOW_THRESHHOLD 	= 15;// blue
+	private final static int MEDIUM_THRESHHOLD 	= 40;// green
+	private final static int HIGH_THRESHHOLD 	= 75;// amber
 												    													 // above high=RED
 	private boolean blue, red, amber, green, initialized;
-	private final static boolean DEBUG=true;
+	private final static boolean DEBUG=false;
 
-	private static final String NEXUS_PATH="i2c-0/0-0066";//GBAR
-	private static final String DESIRE_PATH="platform/leds-microp";//GBA, no root
-	private static final String G1_PATH="i2c-0/0-0062";//RGB
-	private static final String MAGIC_PATH="platform/leds-cpld";//RGB
+	private static final String NEXUS_PATH		="i2c-0/0-0066";//GBAR
+	private static final String DESIRE_PATH		="platform/leds-microp";//GBA, no root
+	private static final String G1_PATH			="i2c-0/0-0062";//RGB
+	private static final String MAGIC_PATH		="platform/leds-cpld";//RGB
 	
 	private static String pathToUse=DESIRE_PATH;//default to this
 
-	private final static String ROOT_SHELL = "su";
-	private final static String NORMAL_SHELL = "sh";	
+	private final static String ROOT_SHELL 		= "su";
+	private final static String NORMAL_SHELL	= "sh";	
 	private static String shellOpenCommand = ROOT_SHELL;//default	
 	
 	private final static String COLORS_WITHAMBER	= "RGBA";
-	private final static String COLORS_RGB					= "RGB";
-	private final static String COLORS_NORED				= "GBA";	
+	private final static String COLORS_RGB			= "RGB";
+	private final static String COLORS_NORED		= "GBA";	
 
 	private static String colorsToUse=COLORS_RGB;//default to this
 	
 	//model name, led path, shell to use, colors supported
 	String[][] MODEL_SETTINGS_MATRIX=
 	{
-			{"Nexus One",					NEXUS_PATH	,	ROOT_SHELL,			COLORS_WITHAMBER},	
-			{"HTC Desire",					DESIRE_PATH,	NORMAL_SHELL,	COLORS_NORED},	
+			{"Nexus One",			NEXUS_PATH,	ROOT_SHELL,		COLORS_WITHAMBER},	
+			{"HTC Desire",			DESIRE_PATH,NORMAL_SHELL,	COLORS_NORED},	
 			
-			{"HTC Dream",					G1_PATH,				ROOT_SHELL,			COLORS_RGB},
-			{"T-Mobile G1",					G1_PATH, 			ROOT_SHELL,			COLORS_RGB},
-			{"Era G1",							G1_PATH, 			ROOT_SHELL,			COLORS_RGB},			
+			{"HTC Dream",			G1_PATH,	ROOT_SHELL,		COLORS_RGB},
+			{"T-Mobile G1",			G1_PATH, 	ROOT_SHELL,		COLORS_RGB},
+			{"Era G1",				G1_PATH, 	ROOT_SHELL,		COLORS_RGB},			
 			
-			{"HTC Magic",					MAGIC_PATH, 	ROOT_SHELL,			COLORS_RGB},			
-			{"HTC Sapphire",				MAGIC_PATH, 	ROOT_SHELL,			COLORS_RGB},			
-			{"T-Mobile myTouch 3G",	MAGIC_PATH, 	ROOT_SHELL,			COLORS_RGB},			
-			{"Docomo HT-03A",			MAGIC_PATH,		ROOT_SHELL,			COLORS_RGB}						
+			{"HTC Magic",			MAGIC_PATH, ROOT_SHELL,		COLORS_RGB},			
+			{"HTC Sapphire",		MAGIC_PATH, ROOT_SHELL,		COLORS_RGB},			
+			{"T-Mobile myTouch 3G",	MAGIC_PATH, ROOT_SHELL,		COLORS_RGB},			
+			{"Docomo HT-03A",		MAGIC_PATH,	ROOT_SHELL,		COLORS_RGB}						
 	};
 	
 	private static String model=null;
 
 	private final static String TAG = "NetMeter+LED";
 	
-	private static final String 	COLOR_BLUE		="blue",
-							    					COLOR_GREEN	="green",
-							    					COLOR_AMBER	="amber",//G1 has no amber LED, so using red
-							    					COLOR_RED		="red";//Desire has no red LED, so using amber
+	private static final String COLOR_BLUE	="blue",
+							    COLOR_GREEN	="green",
+							    COLOR_AMBER	="amber",//G1 has no amber LED, so using red
+							    COLOR_RED	="red";//Desire has no red LED, so using amber
 	
 	private final static String ECHO_0="echo 0 > ";
 	private final static String ECHO_1="echo 1 > ";
