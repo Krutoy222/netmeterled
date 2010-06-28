@@ -200,7 +200,7 @@ public class ChargingLEDLib
 			{
 				turnOffAllLitLEDs();
 				
-				if (colorsToUse.indexOf("A") == -1)//no amber, use red instead, TODO: what if theres no RED
+				if (colorsToUse.indexOf("A") == -1)//no amber, use red instead, TODO: what if there is no RED
 				{
 					red = true;
 					turnOnLED(COLOR_RED);

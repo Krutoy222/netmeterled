@@ -77,10 +77,6 @@ public class StatsProcessor {
 							GraphView graph) {
 		mCounterViews = counter_views;
 		mInfoViews = info_views;
-		for (int i=0; i < NUM_COUNTERS; ++i ) {
-			mCounters.get(i).paint(mCounterViews.get(i));
-		}
-		processNetStatus();
 	}
 	
 	public void unlinkDisplay() {
@@ -89,11 +85,12 @@ public class StatsProcessor {
 	}
 	
 	public boolean processUpdate() {
-		processNetStatus();
-		return processIfStats();
+		return true;
+		//processNetStatus();
+		//return processIfStats();
 	}
 	
-	public boolean processIfStats() {
+	public boolean processIfStats1() {
 		FileReader fstream;
 		try {
 			fstream = new FileReader(DEV_FILE);
@@ -132,45 +129,4 @@ public class StatsProcessor {
 		}
 	}
 	
-	private void processNetStatus() {
-		if (mInfoViews != null) {
-			NetworkInfo cell_cx = mCx.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-			NetworkInfo wifi_cx = mCx.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-			WifiInfo wifi_info = mWifi.getConnectionInfo();
-			
-			String cell_label = "";
-			String wifi_label = "";
-			
-			// Cellular data
-			if (cell_cx != null && cell_cx.getState() == NetworkInfo.State.CONNECTED) {
-			if (mCellular.isNetworkRoaming()) {
-				cell_label += "ROAMING ";
-			}
-			cell_label += mCellular.getNetworkOperatorName();
-			cell_label += getCellularType(mCellular.getNetworkType());
-			}
-			mInfoViews.get(0).setText(cell_label);
-			mInfoViews.get(0).setTextColor(Color.GREEN);
-			
-			// Wifi
-			if (wifi_cx != null && wifi_cx.getState() == NetworkInfo.State.CONNECTED) {			
-				wifi_label = wifi_info.getSSID();
-			}
-			mInfoViews.get(1).setText(wifi_label);
-			mInfoViews.get(1).setTextColor(Color.GREEN);
-		}
-	}
-
-	private String getCellularType(int type) {
-		switch (type) {
-		case TelephonyManager.NETWORK_TYPE_GPRS:
-			return " GPRS";
-		case TelephonyManager.NETWORK_TYPE_EDGE:
-			return " EDGE";
-		case TelephonyManager.NETWORK_TYPE_UMTS:
-			return " UMTS";
-		default:
-			return "";
-		}
-	}
 }

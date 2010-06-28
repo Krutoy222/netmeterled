@@ -1,7 +1,6 @@
 Todos:
 -move each phone model settings to a preference file
 -save default color brackets and color order for each phone model
--customize layout, keep only cpu graph, task list in menu
 
 on startup- check if we recognize the model, else ask 'launch led detection?'
 

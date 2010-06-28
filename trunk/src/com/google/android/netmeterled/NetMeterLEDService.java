@@ -43,8 +43,8 @@ import android.widget.TextView;
  * sends an intent to (re)start NetMeter activity.
  */
 public class NetMeterLEDService extends Service {
-	final private String TAG="NetMeterService";
-	final private int SAMPLING_INTERVAL = 5;
+	final private String TAG="NetMeterLEDService";
+	final private int SAMPLING_INTERVAL = 3;
 
 	private NotificationManager mNM;
 
@@ -64,7 +64,7 @@ public class NetMeterLEDService extends Service {
 	// various stats collection objects
 	private StatsProcessor mStatsProc;
 	private CpuMon mCpuMon;
-	private GraphView mGraph = null;
+	//private GraphView mGraph = null;
 	private long mLastTime;
 
 	// All the polling and display updating is driven from this
@@ -85,9 +85,9 @@ public class NetMeterLEDService extends Service {
 				}
 			}
 			mLastTime = last_time;
-			mStatsProc.processUpdate();
+			//mStatsProc.processUpdate();
 			mCpuMon.readStats();
-			if (mGraph != null) mGraph.refresh();
+			//if (mGraph != null) mGraph.refresh();
 			mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
 		}
 	};
@@ -115,11 +115,10 @@ public class NetMeterLEDService extends Service {
 			Vector<TextView> info_views,
 			Vector<TextView> cpu_views,
 			GraphView graph) {
-		mGraph = graph;
+		//mGraph = graph;
 		mStatsProc.linkDisplay(stats_views, info_views, graph);
 		mCpuMon.linkDisplay(cpu_views);
-		graph.linkCounters(mStatsProc.getCounters(),
-						mCpuMon.getHistory());
+		graph.linkCounters(mStatsProc.getCounters(), mCpuMon.getHistory());
 	}
 
 	/**
@@ -173,7 +172,7 @@ public class NetMeterLEDService extends Service {
 		Log.i(TAG, "onUnbind");
 		mStatsProc.unlinkDisplay();
 		mCpuMon.unlinkDisplay();
-		mGraph = null;
+		//mGraph = null;
 		return true;
 	}
 
