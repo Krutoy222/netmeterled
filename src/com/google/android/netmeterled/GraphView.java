@@ -30,10 +30,8 @@ import android.view.View;
 class GraphView extends View {	
 	final private int TICKS = 3;
 	final private Paint mBackgroundPaint = makePaint(Color.BLUE);
-	final private Paint mAxisPaint = makePaint(Color.BLACK);
-	final private Paint mIn = makePaint(Color.RED);
-	final private Paint mOut = makePaint(Color.GREEN);
-	final private Paint mCpu = makePaint(Color.LTGRAY);
+	final private Paint mAxisPaint = makePaint(Color.WHITE);
+	final private Paint mCpu = makePaint(Color.RED);
 	
 	private Vector<StatCounter> mCounters = null;
 	private HistoryBuffer mCpuCounter = null;
@@ -106,15 +104,15 @@ class GraphView extends View {
         if (mCounters == null || mCpuCounter == null) return;
   
         Projection cell_proj = getDataScale(0);
-        Projection wifi_proj = getDataScale(1);
-        int offset = (getHeight() - 15) / 3 * 2;
+//        Projection wifi_proj = getDataScale(1);
+        int offset = 0;// (getHeight() - 15);
         Projection cpu_proj = new Projection(cell_proj.mWidth,
         									cell_proj.mHeight,
         									offset,
         									cell_proj.mXrange, 100);
         
-        drawAxis(canvas, cell_proj, "cellular", "bps");
-        drawAxis(canvas, wifi_proj, "wifi", "bps");
+//        drawAxis(canvas, cell_proj, "cellular", "bps");
+//        drawAxis(canvas, wifi_proj, "wifi", "bps");
         drawAxis(canvas, cpu_proj, "cpu", "%");
         
 		
@@ -122,18 +120,17 @@ class GraphView extends View {
 				cpu_proj.x(cpu_proj.mXrange / 2), cpu_proj.y(0) + 12,
 				mAxisPaint);
         
-        drawGraph(canvas, cell_proj, mIn, 
-        		mCounters.get(0).getHistory().getData(mResolution));
-        drawGraph(canvas, cell_proj, mOut, 
-        		mCounters.get(1).getHistory().getData(mResolution));
+//        drawGraph(canvas, cell_proj, mIn, 
+//        		mCounters.get(0).getHistory().getData(mResolution));
+//        drawGraph(canvas, cell_proj, mOut, 
+//        		mCounters.get(1).getHistory().getData(mResolution));
+//        
+//        drawGraph(canvas, wifi_proj, mIn, 
+//        		mCounters.get(2).getHistory().getData(mResolution));
+//        drawGraph(canvas, wifi_proj, mOut, 
+//        		mCounters.get(3).getHistory().getData(mResolution));
         
-        drawGraph(canvas, wifi_proj, mIn, 
-        		mCounters.get(2).getHistory().getData(mResolution));
-        drawGraph(canvas, wifi_proj, mOut, 
-        		mCounters.get(3).getHistory().getData(mResolution));
-        
-        drawGraph(canvas, cpu_proj, mCpu,
-        		mCpuCounter.getData(mResolution));
+        drawGraph(canvas, cpu_proj, mCpu,mCpuCounter.getData(mResolution));
 	}
 	
 	private int getMaxTimescale() {
@@ -193,7 +190,7 @@ class GraphView extends View {
 		}
 		yscale = yscale + (yscale/10); // + 10%
 		yscale = ((yscale / 10) + 1) * 10;
-		int height = (getHeight() - 15) / 3;
+		int height = (getHeight() - 15) ;
 		return new Projection(getWidth() - 10,
 				height - 5,
 				height * index,
