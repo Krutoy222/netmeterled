@@ -95,7 +95,6 @@ public class NetMeter extends Activity {
             this.moveTaskToBack(true);
         	Toast.makeText(this,TAG +" sent to the background.", Toast.LENGTH_SHORT).show();
         	return;
-
         }
 
         setContentView(R.layout.main);
@@ -162,8 +161,7 @@ public class NetMeter extends Activity {
     @Override
     public void onResume() {
     	super.onResume();
-    	bindService(new Intent(this,
-                NetMeterLEDService.class), mConnection, Context.BIND_AUTO_CREATE);
+    	bindService(new Intent(this,NetMeterLEDService.class), mConnection, Context.BIND_AUTO_CREATE);
 
     }
 
@@ -184,15 +182,6 @@ public class NetMeter extends Activity {
      */
     private void createTable() {
     	TableLayout table = (TableLayout)findViewById(R.id.disp);
-
-//    	mInfoFields.addElement(createTableRow(table, R.string.disp_cell, -1, 0));
-//    	mStatsFields.addElement(createTableRow(table, -1, R.string.disp_in, 0));
-//    	mStatsFields.addElement(createTableRow(table, -1, R.string.disp_out, 0));
-//    	createTableRow(table, 0, 0, 0);
-//    	mInfoFields.addElement(createTableRow(table, R.string.disp_wifi, -1, 0));
-//    	mStatsFields.addElement(createTableRow(table, -1, R.string.disp_in, 0));
-//    	mStatsFields.addElement(createTableRow(table, -1, R.string.disp_out, 0));
-//    	createTableRow(table, 0, 0, 0);
     	mCpuFields.addElement(createTableRow(table, R.string.disp_cpu,
     				R.string.disp_cpu_type, 0));
     }
