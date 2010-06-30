@@ -100,16 +100,16 @@ public class ChargingLEDLib
 					COLORS_RGB
 			},
 			{
-				"Droid A855",
-				DROID_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
+					"Droid A855",
+					DROID_PATH,
+					ROOT_SHELL,
+					COLORS_RGB
 			},
 			{
-				"Milestone",
-				DROID_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
+					"Milestone",
+					DROID_PATH,
+					ROOT_SHELL,
+					COLORS_RGB
 			}
 	};
 

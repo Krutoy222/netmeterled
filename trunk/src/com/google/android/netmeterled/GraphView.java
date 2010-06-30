@@ -17,8 +17,6 @@ package com.google.android.netmeterled;
 
 import java.util.Vector;
 
-import com.google.android.netmeterled.HistoryBuffer.CircularBuffer;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -27,49 +25,22 @@ import android.util.AttributeSet;
 import android.view.View;
 
 
-class GraphView extends View {	
+class GraphView extends View {
 	final private int TICKS = 3;
 	final private Paint mBackgroundPaint = makePaint(Color.BLUE);
 	final private Paint mAxisPaint = makePaint(Color.WHITE);
 	final private Paint mCpu = makePaint(Color.RED);
-	
+
 	private Vector<StatCounter> mCounters = null;
 	private HistoryBuffer mCpuCounter = null;
-	
+
 	private int mResolution = 0;
 	private int mRefreshTicks = 0;
 
-	
-	class Projection {
-		final public int mWidth;
-		final public int  mHeight;
-		final public int mOffset;
-		final public int mXrange;
-		final public int mYrange;
-		final private float mXscale;
-		final private float mYscale;
-		public Projection(int width, int height, int offset,
-						int x_range, int y_range) {
-			mWidth = width;
-			mHeight = height;
-			mOffset = offset;
-			mXrange = x_range;
-			mYrange = y_range;
-			mXscale = (float)(width) / x_range;
-			mYscale = (float)(height) / y_range;
-		}
-		public float x(int x) {
-			return x * mXscale + 5;
-		}
-		public float y(int y) {
-			return mHeight - y * mYscale + mOffset;
-		}
-	}
-	
 	public GraphView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 	}
-	
+
 	public String toggleScale() {
 		mResolution += 1;
 		mResolution %= 7;
@@ -80,7 +51,7 @@ class GraphView extends View {
 		mRefreshTicks = mResolution  * 2 + 1;
 		return getBanner();
 	}
-	
+
 	public void refresh() {
 		if (mRefreshTicks == 0) {
 			invalidate();
@@ -89,7 +60,7 @@ class GraphView extends View {
 			--mRefreshTicks;
 		}
 	}
-	
+
 	public void linkCounters(Vector<StatCounter> counters,
 							HistoryBuffer cpu) {
 		mCounters = counters;
@@ -97,48 +68,48 @@ class GraphView extends View {
 		mResolution = getMaxTimescale();
 		invalidate();
 	}
-	
+
 	@Override
 	public void onDraw(Canvas canvas) {
         canvas.drawPaint(mBackgroundPaint);
         if (mCounters == null || mCpuCounter == null) return;
-  
+
         Projection cell_proj = getDataScale(0);
 //        Projection wifi_proj = getDataScale(1);
         int offset = 0;// (getHeight() - 15);
         Projection cpu_proj = new Projection(cell_proj.mWidth,
         									cell_proj.mHeight,
         									offset,
-        									cell_proj.mXrange, 100);
-        
+        									cell_proj.maxX, 100);
+
 //        drawAxis(canvas, cell_proj, "cellular", "bps");
 //        drawAxis(canvas, wifi_proj, "wifi", "bps");
         drawAxis(canvas, cpu_proj, "cpu", "%");
-        
-		
+
+
 		canvas.drawText(getBanner(),
-				cpu_proj.x(cpu_proj.mXrange / 2), cpu_proj.y(0) + 12,
+				cpu_proj.multXScale(cpu_proj.maxX / 2), cpu_proj.multYScale(0) + 12,
 				mAxisPaint);
-        
-//        drawGraph(canvas, cell_proj, mIn, 
+
+//        drawGraph(canvas, cell_proj, mIn,
 //        		mCounters.get(0).getHistory().getData(mResolution));
-//        drawGraph(canvas, cell_proj, mOut, 
+//        drawGraph(canvas, cell_proj, mOut,
 //        		mCounters.get(1).getHistory().getData(mResolution));
-//        
-//        drawGraph(canvas, wifi_proj, mIn, 
+//
+//        drawGraph(canvas, wifi_proj, mIn,
 //        		mCounters.get(2).getHistory().getData(mResolution));
-//        drawGraph(canvas, wifi_proj, mOut, 
+//        drawGraph(canvas, wifi_proj, mOut,
 //        		mCounters.get(3).getHistory().getData(mResolution));
-        
+
         drawGraph(canvas, cpu_proj, mCpu,mCpuCounter.getData(mResolution));
 	}
-	
+
 	private int getMaxTimescale() {
 		int capacity = mCounters.get(0).getHistory()
 						.getData(5).getCapacity();
 		int size = mCounters.get(0).getHistory()
 					.getData(5).getSize();
-		
+
 		capacity -= capacity/10;
 		if (size > capacity/2) return 6;
 		if (size > capacity/4) return 5;
@@ -148,7 +119,7 @@ class GraphView extends View {
 		if (size > capacity/96) return 1;
 		return 0;
 	}
-	
+
 	private String getBanner() {
 		switch(mResolution) {
 		case 0:
@@ -169,7 +140,7 @@ class GraphView extends View {
 			return "invalid";
 		}
 	}
-	
+
 	private Projection getDataScale(int index) {
 		int xscale = mCounters.get(index * 2).getHistory()
 					.getData(mResolution).getCapacity();
@@ -180,7 +151,7 @@ class GraphView extends View {
 			xscale /= 2;
 		}
 		int yscale = 10;
-		
+
 		for (int i=0; i< 2; ++i) {
 			int val = mCounters.get(index * 2 + i).getHistory()
 					.getData(mResolution).getMax(xscale);
@@ -196,7 +167,7 @@ class GraphView extends View {
 				height * index,
 				xscale, yscale);
 	}
-	
+
 	private void drawGraph(Canvas canvas,
 			Projection proj,
 			Paint color,
@@ -205,43 +176,43 @@ class GraphView extends View {
 		int y_end;
 		for (int i = 1; i < data.getSize(); ++i) {
 			y_end = data.lookBack(i);
-			canvas.drawLine(proj.x(proj.mXrange - i + 1), proj.y(y_start),
-					proj.x(proj.mXrange - i), proj.y(y_end),
+			canvas.drawLine(proj.multXScale(proj.maxX - i + 1), proj.multYScale(y_start),
+					proj.multXScale(proj.maxX - i), proj.multYScale(y_end),
 					color);
 			y_start = y_end;
 		}
 	}
-	
+
 	private void drawAxis(Canvas canvas, Projection proj,
 			String title, String unit) {
-		
-		canvas.drawLine(proj.x(0), proj.y(0),
-				proj.x(proj.mXrange), proj.y(0),
+
+		canvas.drawLine(proj.multXScale(0), proj.multYScale(0),
+				proj.multXScale(proj.maxX), proj.multYScale(0),
 				mAxisPaint);
 
-		
-		canvas.drawLine(proj.x(0), proj.y(0), proj.x(0),
-				proj.y(proj.mYrange),
+
+		canvas.drawLine(proj.multXScale(0), proj.multYScale(0), proj.multXScale(0),
+				proj.multYScale(proj.maxY),
 				mAxisPaint);
-		
-		
-		int x_step = proj.mXrange / TICKS;
-		int y_step = proj.mYrange / TICKS;
+
+
+		int x_step = proj.maxX / TICKS;
+		int y_step = proj.maxY / TICKS;
 		for (int i=1; i <= TICKS; ++i) {
-			canvas.drawLine(proj.x(x_step * i), proj.y(0),
-					proj.x(x_step * i), proj.y(0) - 10, mAxisPaint);
-			canvas.drawLine(proj.x(0), proj.y(y_step * i),
-					proj.x(0) + 10, proj.y(y_step * i), mAxisPaint);	
+			canvas.drawLine(proj.multXScale(x_step * i), proj.multYScale(0),
+					proj.multXScale(x_step * i), proj.multYScale(0) - 10, mAxisPaint);
+			canvas.drawLine(proj.multXScale(0), proj.multYScale(y_step * i),
+					proj.multXScale(0) + 10, proj.multYScale(y_step * i), mAxisPaint);
 		}
-		canvas.drawText(Integer.toString(proj.mYrange) + unit,
-				proj.x(0) + 10, proj.y(proj.mYrange) + 10, mAxisPaint);
-		
-		canvas.drawText(title, proj.x(proj.mXrange / 2),
-				proj.y(proj.mYrange) + 10,
+		canvas.drawText(Integer.toString(proj.maxY) + unit,
+				proj.multXScale(0) + 10, proj.multYScale(proj.maxY) + 10, mAxisPaint);
+
+		canvas.drawText(title, proj.multXScale(proj.maxX / 2),
+				proj.multYScale(proj.maxY) + 10,
 				mAxisPaint);
 	}
-		
-	
+
+
 	private Paint makePaint(int color) {
 		Paint p = new Paint();
 		p.setColor(color);

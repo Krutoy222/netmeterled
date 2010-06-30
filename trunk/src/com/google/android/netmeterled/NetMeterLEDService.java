@@ -22,13 +22,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -95,6 +92,7 @@ public class NetMeterLEDService extends Service {
 	 * Reset the counters - triggered by the reset menu of the controller activity
 	 */
 	public void resetCounters() {
+		if(mStatsProc!=null)
 		mStatsProc.reset();
 	}
 
@@ -127,11 +125,8 @@ public class NetMeterLEDService extends Service {
 	@Override
     public void onCreate() {
 		Log.i(TAG, "onCreate");
-		WifiManager wifi = (WifiManager)getSystemService(WIFI_SERVICE);
-		TelephonyManager cellular = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-		ConnectivityManager cx = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
 
-		mStatsProc = new StatsProcessor(SAMPLING_INTERVAL, cellular, wifi, cx);
+		mStatsProc = new StatsProcessor(SAMPLING_INTERVAL, null, null, null);
 		mCpuMon = new CpuMon();
 
 		mStatsProc.processUpdate();
@@ -141,8 +136,7 @@ public class NetMeterLEDService extends Service {
 		//postNotification();
 		mLastTime = SystemClock.elapsedRealtime();
 		mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
-		//deprecated
-		//setForeground(true);
+
 	}
 
 	/**
