@@ -7,9 +7,9 @@ import android.util.Log;
 
 /**
  * This library offers methods to set the charging LED color.
- * 
+ *
  * @author britoso
- * 
+ *
  *         color combinations: green+blue= sky blue blue+amber= pink
  */
 public class ChargingLEDLib
@@ -21,24 +21,25 @@ public class ChargingLEDLib
 	// above high=RED
 	private boolean blue, red, amber, green, initialized;
 	private final static boolean DEBUG = false;
-	
+
 	private static final String NEXUS_PATH = "i2c-0/0-0066";//GBAR
 	private static final String DESIRE_PATH = "platform/leds-microp";//GBA, no root
 	private static final String G1_PATH = "i2c-0/0-0062";//RGB
 	private static final String MAGIC_PATH = "platform/leds-cpld";//RGB
-	
+	private static final String DROID_PATH = "platform/notification-led";//RGB
+
 	private static String pathToUse = DESIRE_PATH;//default to this
-	
+
 	private final static String ROOT_SHELL = "su";
 	private final static String NORMAL_SHELL = "sh";
-	private static String shellOpenCommand = ROOT_SHELL;//default	
-	
+	private static String shellOpenCommand = ROOT_SHELL;//default
+
 	private final static String COLORS_WITHAMBER = "RGBA";
 	private final static String COLORS_RGB = "RGB";
 	private final static String COLORS_NORED = "GBA";
-	
+
 	private static String colorsToUse = COLORS_RGB;//default to this
-	
+
 	//model name, led path, shell to use, colors supported
 	String [][] MODEL_SETTINGS_MATRIX =
 	{
@@ -54,7 +55,7 @@ public class ChargingLEDLib
 					NORMAL_SHELL,
 					COLORS_NORED
 			},
-			
+
 			{
 					"HTC Dream",
 					G1_PATH,
@@ -73,7 +74,7 @@ public class ChargingLEDLib
 					ROOT_SHELL,
 					COLORS_RGB
 			},
-			
+
 			{
 					"HTC Magic",
 					MAGIC_PATH,
@@ -97,26 +98,38 @@ public class ChargingLEDLib
 					MAGIC_PATH,
 					ROOT_SHELL,
 					COLORS_RGB
+			},
+			{
+				"Droid A855",
+				DROID_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
+			},
+			{
+				"Milestone",
+				DROID_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
 			}
 	};
-	
+
 	private static String model = null;
-	
+
 	private final static String TAG = "NetMeter+LED";
-	
+
 	private static final String COLOR_BLUE = "blue", COLOR_GREEN = "green", COLOR_AMBER = "amber",//G1 has no amber LED, so using red
 			COLOR_RED = "red";//Desire has no red LED, so using amber
-			
+
 	private final static String ECHO_0 = "echo 0 > ";
 	private final static String ECHO_1 = "echo 1 > ";
 	private final static String PATH_PREFIX = "/sys/devices/";
 	private final static String PATH_MID = "/leds/";
 	private final static String PATH_SUFFIX = "/brightness";
-	
+
 	// keep the console used to issue commands open. more efficient
 	private static Process suConsole = null;
 	private static DataOutputStream os = null;
-	
+
 	private void initialize()
 	{
 		model = android.os.Build.MODEL;
@@ -125,7 +138,7 @@ public class ChargingLEDLib
 		turnOffAllLEDs();
 		//resetLEDBrightness();//incase someone was playing with it.
 	}
-	
+
 	private void setPathBasedOnModel()
 	{
 		//get phone settings from the MODEL_SETTINGS_MATRIX matrix
@@ -142,7 +155,7 @@ public class ChargingLEDLib
 			}
 		}
 	}
-	
+
 	/**
 	 * turn off all known LEDs
 	 */
@@ -153,10 +166,10 @@ public class ChargingLEDLib
 		if (colorsToUse.indexOf("A") > -1) turnOffLED(COLOR_AMBER);
 		if (colorsToUse.indexOf("R") > -1) turnOffLED(COLOR_RED);
 	}
-	
+
 	/**
 	 * set the charging LED color appropriately
-	 * 
+	 *
 	 * @author britoso
 	 * @param totalCPUInt
 	 *            the cpu usage percent
@@ -164,14 +177,14 @@ public class ChargingLEDLib
 	public void setLEDColor(int totalCPUInt)
 	{
 		if (DEBUG) Log.d(TAG, "CPU=" + totalCPUInt);
-		
+
 		// turn off all colors once at the start.
 		if (initialized == false)
 		{
 			initialize();
 			initialized = true;
 		}
-		
+
 		if (totalCPUInt <= LOWEST_THRESHHOLD)
 		{
 			turnOffAllLitLEDs();
@@ -199,7 +212,7 @@ public class ChargingLEDLib
 			if (amber == false)
 			{
 				turnOffAllLitLEDs();
-				
+
 				if (colorsToUse.indexOf("A") == -1)//no amber, use red instead, TODO: what if there is no RED
 				{
 					red = true;
@@ -227,23 +240,23 @@ public class ChargingLEDLib
 					turnOnLED(COLOR_RED);
 					red = true;
 				}
-				
+
 				//setHexColor("#00FFFF");
 			}
 		}
-		
+
 	}
-	
+
 	private void turnOnLED(String color)
 	{
 		runRootCommand(ECHO_1 + PATH_PREFIX + pathToUse + PATH_MID + color + PATH_SUFFIX);
 	}
-	
+
 	private void turnOffLED(String color)
 	{
 		runRootCommand(ECHO_0 + PATH_PREFIX + pathToUse + PATH_MID + color + PATH_SUFFIX);
 	}
-	
+
 	/**
 	 * turn off only if needed.
 	 */
@@ -254,26 +267,26 @@ public class ChargingLEDLib
 			turnOffLED(COLOR_BLUE);
 			blue = false;
 		}
-		
+
 		if (green)
 		{
 			turnOffLED(COLOR_GREEN);
 			green = false;
 		}
-		
+
 		if (amber)
 		{
 			turnOffLED(COLOR_AMBER);
 			amber = false;
 		}
-		
+
 		if (red)
 		{
 			turnOffLED(COLOR_RED);
 			red = false;
 		}
 	}
-	
+
 	private boolean runRootCommand(String command)
 	{
 		try
@@ -287,7 +300,7 @@ public class ChargingLEDLib
 			if (DEBUG) Log.d(TAG, "Running command: " + command);
 			os.writeBytes(command + "\n");
 			os.flush();
-			//uncomment if deemed necessary			
+			//uncomment if deemed necessary
 			//			synchronized (suConsole)
 			//			{
 			//				suConsole.wait(100);
@@ -305,7 +318,7 @@ public class ChargingLEDLib
 		}
 		return true;
 	}
-	
+
 	public void setColor(int r, int g, int b)
 	{
 		turnOffAllLEDs();
@@ -325,9 +338,9 @@ public class ChargingLEDLib
 			setLEDBrightness(COLOR_BLUE, b);
 		}
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param rgb
 	 *            Supported formats are: #RRGGBB #AARRGGBB 'red', 'blue',
 	 *            'green', 'black', 'white', 'gray', 'cyan', 'magenta',
@@ -336,7 +349,7 @@ public class ChargingLEDLib
 	public void setHexColor(String rgb)
 	{
 		int inColor;
-		
+
 		try
 		{
 			inColor = Color.parseColor(rgb);
@@ -346,7 +359,7 @@ public class ChargingLEDLib
 			Log.d(TAG, "Error parsing  hex color.");
 			return;
 		}
-		
+
 		if (Color.red(inColor) > 0)
 		{
 			turnOnLED(COLOR_RED);
@@ -366,13 +379,13 @@ public class ChargingLEDLib
 			setLEDBrightness(COLOR_BLUE, Color.blue(inColor));
 		}
 	}
-	
+
 	private void setLEDBrightness(String color, int value)
 	{
 		if (color != null && color.length() > 0 && value >= 0 && value <= 255) runRootCommand("echo " + value + " > /sys/devices/" + pathToUse + "/leds/"
 				+ color + "/max_brightness");
 	}
-	
+
 	public void resetLEDBrightness()
 	{
 		/*
