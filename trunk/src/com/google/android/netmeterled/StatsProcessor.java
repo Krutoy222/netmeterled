@@ -21,10 +21,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
 
-import android.graphics.Color;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -35,24 +32,17 @@ public class StatsProcessor {
 	final private String DEV_FILE = "/proc/self/net/dev";
 	final private String WIFI_DEV = "tiwlan0";
 	final private String CELL_DEV = "rmnet0";
-	
+
 	private int mSamplingInterval;
-	private WifiManager mWifi;
-	private TelephonyManager mCellular;
-	private ConnectivityManager mCx;
-	
+
 	private Vector<StatCounter> mCounters;
 	private Vector<TextView> mCounterViews;
-	private Vector<TextView> mInfoViews;
-	
+
 	StatsProcessor(int sampling_interval,
 				TelephonyManager cellular,
 				WifiManager wifi,
 				ConnectivityManager cx) {
 		mSamplingInterval = sampling_interval;
-		mCellular = cellular;
-		mWifi = wifi;
-		mCx = cx;
 		mCounters = new Vector<StatCounter>();
 		for (int i = 0; i < NUM_COUNTERS; ++i) {
 			mCounters.addElement(new StatCounter("B"));
@@ -67,29 +57,27 @@ public class StatsProcessor {
 			}
 		}
 	}
-	
+
 	public Vector<StatCounter> getCounters() {
 		return mCounters;
 	}
-	
+
 	public void linkDisplay(Vector<TextView> counter_views,
 							Vector<TextView> info_views,
 							GraphView graph) {
 		mCounterViews = counter_views;
-		mInfoViews = info_views;
 	}
-	
+
 	public void unlinkDisplay() {
 		mCounterViews = null;
-		mInfoViews = null;
 	}
-	
+
 	public boolean processUpdate() {
 		return true;
 		//processNetStatus();
 		//return processIfStats();
 	}
-	
+
 	public boolean processIfStats1() {
 		FileReader fstream;
 		try {
@@ -120,7 +108,7 @@ public class StatsProcessor {
 			return false;
 		}
 	}
-	
+
 	private void updateStatCounter(String text, int index) {
 		if (mCounters.get(index).update(text, mSamplingInterval)) {
 			if (mCounterViews != null) {
@@ -128,5 +116,5 @@ public class StatsProcessor {
 			}
 		}
 	}
-	
+
 }
