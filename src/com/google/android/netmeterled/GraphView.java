@@ -72,7 +72,12 @@ class GraphView extends View {
 	@Override
 	public void onDraw(Canvas canvas) {
         canvas.drawPaint(mBackgroundPaint);
-        if (mCounters == null || mCpuCounter == null) return;
+//        if (mCounters == null || mCpuCounter == null)
+//        {
+//        	Log.i("bah", "mCounters="+mCounters==null?"null":"not null");
+//        	Log.i("bah", "mCpuCounter="+mCpuCounter==null?"null":"not null");
+//        	return;
+//        }
 
         Projection cell_proj = getDataScale(0);
 //        Projection wifi_proj = getDataScale(1);

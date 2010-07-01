@@ -29,34 +29,34 @@ public class CpuMon {
 	final private String STAT_FILE = "/proc/stat";
 	final private DecimalFormat mPercentFmt = new DecimalFormat("#0.0");
 	 Process p=null;
-	
+
 	private long mUser;
 	private long mSystem;
 	private long mTotal;
-	
+
 	private HistoryBuffer mHistory;
-		
+
 	private Vector<TextView> mDisplay;
-	
-	
+
+
 	public CpuMon() {
 		mHistory = new HistoryBuffer();
 		readStats();
 	}
-	
+
 	public HistoryBuffer getHistory() {
 		return mHistory;
 	}
-	
+
 	public void linkDisplay(Vector<TextView> display) {
 		mDisplay = display;
 		readStats();
 	}
-	
+
 	public void unlinkDisplay() {
 		mDisplay = null;
 	}
-	
+
 	public boolean readStats() {
 		FileReader fstream;
 		try {
@@ -79,9 +79,9 @@ public class CpuMon {
 		}
 		return false;
 	}
-	
+
 	ChargingLEDLib lib = new ChargingLEDLib();
-	
+
 	private void updateStats(String[] segs) {
 		// user = user + nice
 		long user = Long.parseLong(segs[1]) + Long.parseLong(segs[2]);
@@ -97,7 +97,7 @@ public class CpuMon {
 			int totalCPUInt=new Double((duser+dsystem)*100.0/dtotal).intValue();
 	         //use totalCPUInt  to set LED color.
 			lib.setLEDColor(totalCPUInt);
-			
+
 			if (mDisplay != null) {
 				mDisplay.get(0).setText(mPercentFmt.format(
 						(double)(duser+dsystem)*100.0/dtotal) + "% ("
@@ -107,13 +107,13 @@ public class CpuMon {
 						(double)(dsystem)*100.0/dtotal) + ")");
 			}
 			mHistory.add((int)((duser + dsystem) * 100 / dtotal));
-		} 
+		}
 		mUser = user;
 		mSystem = system;
 		mTotal = total;
-		
-		
+
+
 	}
-    
-    
+
+
 }

@@ -82,19 +82,13 @@ public class NetMeterLEDService extends Service {
 				}
 			}
 			mLastTime = last_time;
-			//mStatsProc.processUpdate();
+			//this reads the /proc/stats file
 			mCpuMon.readStats();
 			//if (mGraph != null) mGraph.refresh();
 			mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
 		}
 	};
-	/**
-	 * Reset the counters - triggered by the reset menu of the controller activity
-	 */
-	public void resetCounters() {
-		if(mStatsProc!=null)
-		mStatsProc.reset();
-	}
+
 
 	/**
 	 *

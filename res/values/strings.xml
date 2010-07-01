@@ -4,11 +4,11 @@
     <string name="top_title">CPU activity by Task (last 30s)</string>
     <string name="help_title">NetMeter Help</string>
     <string name="iconized">NetMeter display</string>
-    <string name="menu_reset">reset</string>
-    <string name="menu_toggle">toggle scale</string>
-    <string name="menu_top">show tasks</string>
-    <string name="menu_stop">stop</string>
-    <string name="menu_help">help</string>
+    <string name="disable_leds">Toggle Enable/Disable LEDs</string>
+    <string name="menu_toggle">Toggle scale</string>
+    <string name="menu_top">Tasks</string>
+    <string name="menu_stop">Exit</string>
+    <string name="menu_help">Help</string>
     <string name="disp_wifi">Wifi</string>
     <string name="disp_cell">Cell</string>
     <string name="disp_cpu">CPU load</string>
