@@ -15,11 +15,11 @@ public final class R {
         public static final int status_icon=0x7f020001;
     }
     public static final class id {
+        public static final int disableleds=0x7f060003;
         public static final int disp=0x7f060000;
         public static final int graph=0x7f060001;
         public static final int help=0x7f060007;
         public static final int list_item=0x7f060002;
-        public static final int reset=0x7f060003;
         public static final int stop=0x7f060006;
         public static final int toggle=0x7f060004;
         public static final int top=0x7f060005;
@@ -34,6 +34,7 @@ public final class R {
     }
     public static final class string {
         public static final int app_name=0x7f040000;
+        public static final int disable_leds=0x7f040004;
         public static final int disp_battery=0x7f04000d;
         public static final int disp_cell=0x7f04000a;
         public static final int disp_collecting=0x7f040014;
@@ -50,7 +51,6 @@ public final class R {
         public static final int help_title=0x7f040002;
         public static final int iconized=0x7f040003;
         public static final int menu_help=0x7f040008;
-        public static final int menu_reset=0x7f040004;
         public static final int menu_stop=0x7f040007;
         public static final int menu_toggle=0x7f040005;
         public static final int menu_top=0x7f040006;

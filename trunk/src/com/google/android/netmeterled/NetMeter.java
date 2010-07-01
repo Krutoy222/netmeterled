@@ -108,6 +108,7 @@ public class NetMeter extends Activity {
 
 
     }
+	boolean disabledLEDs=false;
 
     /**
      * Framework method to create menu structure.
@@ -125,8 +126,9 @@ public class NetMeter extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
-    	case R.id.reset:
-    		mService.resetCounters();
+    	case R.id.disableleds:
+    		disabledLEDs=!disabledLEDs;
+    		ChargingLEDLib.setLEDStatus(disabledLEDs);
     		break;
     	case R.id.toggle:
     		String banner = mGraph.toggleScale();

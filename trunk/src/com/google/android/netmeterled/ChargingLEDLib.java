@@ -110,6 +110,12 @@ public class ChargingLEDLib
 					DROID_PATH,
 					ROOT_SHELL,
 					COLORS_RGB
+			},
+			{
+					"Droid",
+					DROID_PATH,
+					ROOT_SHELL,
+					COLORS_RGB
 			}
 	};
 
@@ -176,6 +182,7 @@ public class ChargingLEDLib
 	 */
 	public void setLEDColor(int totalCPUInt)
 	{
+		if (disabledLEDs) return;//dont do anything
 		if (DEBUG) Log.d(TAG, "CPU=" + totalCPUInt);
 
 		// turn off all colors once at the start.
@@ -400,5 +407,17 @@ public class ChargingLEDLib
 		 * runRootCommand("echo 255 > /sys/devices/"
 		 * +pathToUse+"/amber/max_brightness");
 		 */
+	}
+
+	static boolean disabledLEDs=false;
+	public static void setLEDStatus(boolean flag)
+	{
+		disabledLEDs=flag;
+		if(flag == true)
+		{
+			Log.i(TAG,"Turning off all LEDs.");
+			(new ChargingLEDLib()).turnOffAllLEDs();
+		}
+
 	}
 }
