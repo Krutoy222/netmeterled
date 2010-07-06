@@ -37,6 +37,8 @@ public class CpuMon {
 
 	private NetMeter mDisplay;
 
+	ChargingLEDLib lib = new ChargingLEDLib();
+
 
 	public CpuMon() {
 		readStats();
@@ -73,8 +75,6 @@ public class CpuMon {
 		}
 		return false;
 	}
-
-	ChargingLEDLib lib = new ChargingLEDLib();
 
 	/*
 	 * line: cpu  312480 23494 10874 1529955 51540 0 8 0 0 0
@@ -119,9 +119,13 @@ public class CpuMon {
     						+userHistory.get(size)+"/"+systemHistory.get(size)+")"
     							);
     				if(totalCPUInt>75)
+    				{
     					mDisplay.updateGraph(userHistory,systemHistory,getTopN(3));
+    				}
     				else
+    				{
         				mDisplay.updateGraph(userHistory,systemHistory,null);
+    				}
     			}
         }
         mUser = user;
@@ -129,6 +133,11 @@ public class CpuMon {
         mTotal = total;
 	}
 
+	/**
+	 * TODO Need a faster way
+	 * @param n
+	 * @return
+	 */
 	private ArrayList<String> getTopN(int n)
 	{
 		ArrayList<String> processes= new ArrayList<String>(3);
