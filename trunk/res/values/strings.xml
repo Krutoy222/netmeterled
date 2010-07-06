@@ -1,23 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CPUStatusLED</string>
-    <string name="top_title">CPU activity by Task (last 30s)</string>
     <string name="help_title">NetMeter Help</string>
-    <string name="iconized">NetMeter display</string>
     <string name="disable_leds">Toggle Enable/Disable LEDs</string>
-    <string name="menu_toggle">Toggle scale</string>
-    <string name="menu_top">Tasks</string>
     <string name="menu_stop">Exit</string>
     <string name="menu_help">Help</string>
-    <string name="disp_wifi">Wifi</string>
-    <string name="disp_cell">Cell</string>
     <string name="disp_cpu">CPU load</string>
     <string name="disp_cpu_type"> (app/kernel)</string>
     <string name="disp_battery">Battery</string>
     <string name="disp_name">Name</string>
-    <string name="disp_type">Speed</string>
-    <string name="disp_in">Bytes in</string>
-    <string name="disp_out">Bytes out</string>
     <string name="disp_user">apps</string>
     <string name="disp_system">kernel</string>
     <string name="help_text">
