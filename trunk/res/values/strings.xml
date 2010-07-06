@@ -21,15 +21,19 @@
     <string name="disp_user">apps</string>
     <string name="disp_system">kernel</string>
     <string name="help_text">
-    \n
-    \n<big><b>CPUStatusLED v0.8</b> - CPU performance monitor, using the charging LEDs</big>\n
+	<big><b>\nCPUStatusLED v0.8</b>
+    \nCPU status monitor using the charging LEDs
+    \nby britoso</big>\n
     \n
     CPUStatusLED allows users to trouble-shoot performance problems by letting the user see CPU usage
     over time. On a mobile device, battery power is one of the most critical resources.
     Unexpected heavy CPU usage could be indicative power consuming background activities.\n
     \n
     This project was initially created based on the NetMeter project by Bernhard.R.Suter\n
-    Over time I have re-created most components however credit for the original app go to him.\n
-    Project page: http://code.google.com/p/netmeterled/
+    Over time I have altered most components however credit for the original app go to him.\n
+    \n
+    Project pages:
+    \n\thttp://code.google.com/p/netmeterled
+    \n\thttp://code.google.com/p/android-labs
     </string>
 </resources>

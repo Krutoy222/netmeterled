@@ -19,6 +19,7 @@ package com.britoso.cpustatusled;
 import java.util.ArrayList;
 
 import com.britoso.cpustatusled.R;
+import com.britoso.cpustatusled.utilclasses.ChargingLEDLib;
 
 import android.app.Activity;
 import android.content.Context;

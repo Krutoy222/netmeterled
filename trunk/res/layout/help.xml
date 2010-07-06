@@ -3,10 +3,10 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
     <TextView
+      android:id="@+id/helptext"
       android:layout_width="fill_parent"
       android:layout_height="fill_parent"
       android:selectAllOnFocus="false"
       android:linksClickable="false"
-      android:autoLink="all"
-      android:text="@string/help_text" />
+      android:autoLink="all"/>
     </ScrollView>

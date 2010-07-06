@@ -15,6 +15,8 @@
  */
 package com.britoso.cpustatusled;
 
+import com.britoso.cpustatusled.utilclasses.CpuMon;
+
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -52,7 +54,6 @@ public class CPUStatusLEDService extends Service
 	private final IBinder mBinder = new CPUStatusLEDBinder();
 
 	private CpuMon mCpuMon;
-	//private GraphView mGraph = null;
 	private CPUStatusLED gui;
 
 	public CPUStatusLED getGui()
