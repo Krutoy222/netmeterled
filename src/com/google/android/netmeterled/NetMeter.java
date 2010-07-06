@@ -16,23 +16,18 @@
 package com.google.android.netmeterled;
 
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TableLayout;
-import android.widget.TableRow;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,35 +43,13 @@ import android.widget.Toast;
 public class NetMeter extends Activity {
 	 private String TAG;
 
-	private NetMeterLEDService mService;
-	private Vector<TextView> mStatsFields;
-	private Vector<TextView> mInfoFields;
-	private Vector<TextView> mCpuFields;
-
-	//private PowerMon mPower;
-
-	private GraphView mGraph;
 
 	/**
 	 * Service connection callback object used to establish communication with
 	 * the service after binding to it.
 	 */
-	private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-
-        	// Get reference to (local) service from binder
-            mService = ((NetMeterLEDService.NetMeterBinder)service).getService();
-            Log.i(TAG, "service connected");
-            // link up the display elements to be updated by the service
-            mService.setDisplay(mStatsFields, mInfoFields, mCpuFields, mGraph);
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            mService = null;
-            Log.i(TAG, "service disconnected - should never happen");
-        }
-    };
-
+	private myServiceConnection mConnection;
+	CPUStatusChart cpuStatusChart;
 
     /**
      * Framework method called when the activity is first created.
@@ -97,17 +70,16 @@ public class NetMeter extends Activity {
         	return;
         }
 
-        setContentView(R.layout.main);
-        mStatsFields = new Vector<TextView>();
-        mInfoFields = new Vector<TextView>();
-        mCpuFields = new Vector<TextView>();
+        setContentView(R.layout.layout);
+        if(cpuStatusChart==null)cpuStatusChart=new CPUStatusChart();
+        //chart= cpuStatusChart.createView(this);
+        //chart.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+        //ScrollView sv= (ScrollView)this.findViewById(R.id.scrollview);
+        //sv.addView(chart);
+        mConnection = new myServiceConnection(this);
 
-        mGraph = (GraphView)findViewById(R.id.graph);
-
-        createTable();
-
-
-    }
+        }
+    View chart=null;
 	boolean disabledLEDs=false;
 
     /**
@@ -131,8 +103,6 @@ public class NetMeter extends Activity {
     		ChargingLEDLib.setLEDStatus(disabledLEDs);
     		break;
     	case R.id.toggle:
-    		String banner = mGraph.toggleScale();
-    		Toast.makeText(this, banner, Toast.LENGTH_SHORT).show();
     		break;
     	case R.id.top:
     		Intent intent = new Intent();
@@ -176,44 +146,27 @@ public class NetMeter extends Activity {
     	unbindService(mConnection);
     }
 
-    /**
-     *  Algorithmically generate the table on the top half of the screen,
-     *  which is used to display status and cummulative usage of
-     *  cellular and wifi network interfaces, as well as the current
-     *  CPU usage.
-     */
-    private void createTable() {
-    	TableLayout table = (TableLayout)findViewById(R.id.disp);
-    	mCpuFields.addElement(createTableRow(table, R.string.disp_cpu,
-    				R.string.disp_cpu_type, 0));
+    public void setCPUValues(String value)
+    {
+    	TextView tv= (TextView)this.findViewById(R.id.widget31);
+    	tv.setText(value);
     }
 
-    /**
-     * Helper function to generate a table row based on 4 integer arguments which
-     * represent the column cells in the row.
-     *
-     * If the associated value is -1, the cell is invisible, if it is 0, the cell is set
-     * to an empty text and otherwise the number is assumed to be the ID of a text
-     * resource.
-     *
-     */
-    private TextView createTableRow(TableLayout table, int c1, int c2, int c3) {
-    	int[] cell_text_ids = {c1, c2, c3};
-    	TableRow tr = new TableRow(this);
-		table.addView(tr);
-		for (int i=0; i < 3; ++i) {
-			TextView txt = new TextView(this);
-			tr.addView(txt);
-			if (cell_text_ids[i] == -1) {
-				txt.setVisibility(View.INVISIBLE);
-			} else if (cell_text_ids[i] == 0) {
-				txt.setText("");
-				txt.setGravity(Gravity.RIGHT);
-				return txt;
-			} else {
-				txt.setText(getString(cell_text_ids[i]));
-			}
+	public void updateGraph(ArrayList<Integer> userHistory, ArrayList<Integer> systemHistory, ArrayList<String> topProcesses)
+	{
+		if(topProcesses !=null && topProcesses.size()>=3)
+		{
+			((TextView)this.findViewById(R.id.top_process)).setText(topProcesses.get(0)+"  "+topProcesses.get(1)+"  "+topProcesses.get(2));
 		}
-		return null;
-    }
+		else
+		{
+			((TextView)this.findViewById(R.id.top_process)).setText("");
+		}
+
+		chart=cpuStatusChart.createView(this, userHistory, systemHistory);
+		chart.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+        ScrollView sv= (ScrollView)this.findViewById(R.id.scrollview);
+        sv.removeAllViews();
+        sv.addView(chart);
+	}
 }
