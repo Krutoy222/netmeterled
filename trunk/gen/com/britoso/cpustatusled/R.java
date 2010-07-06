@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package com.google.android.netmeterled;
+package com.britoso.cpustatusled;
 
 public final class R {
     public static final class attr {
@@ -40,7 +40,6 @@ public final class R {
         public static final int disable_leds=0x7f040004;
         public static final int disp_battery=0x7f04000d;
         public static final int disp_cell=0x7f04000a;
-        public static final int disp_collecting=0x7f040014;
         public static final int disp_cpu=0x7f04000b;
         public static final int disp_cpu_type=0x7f04000c;
         public static final int disp_in=0x7f040010;
@@ -50,7 +49,7 @@ public final class R {
         public static final int disp_type=0x7f04000f;
         public static final int disp_user=0x7f040012;
         public static final int disp_wifi=0x7f040009;
-        public static final int help_text=0x7f040015;
+        public static final int help_text=0x7f040014;
         public static final int help_title=0x7f040002;
         public static final int iconized=0x7f040003;
         public static final int menu_help=0x7f040008;
