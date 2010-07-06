@@ -1,12 +1,13 @@
 package com.britoso.cpustatusled;
 
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * 
+ *
  * @author britoso
  *
  */
@@ -22,5 +23,5 @@ public class BootCompletedReciever extends BroadcastReceiver
 		intent.putExtras(bundle);
 		context.startActivity(intent);
 	}
-	
+
 }

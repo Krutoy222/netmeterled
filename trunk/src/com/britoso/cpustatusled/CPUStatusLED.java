@@ -113,6 +113,7 @@ public class CPUStatusLED extends Activity {
     		(new ChargingLEDLib()).turnOffAllLEDs();
     		(new ChargingLEDLib()).resetLEDBrightness();
     		finish();
+    		System.exit(RESULT_OK);
     		break;
     	}
     	return true;
