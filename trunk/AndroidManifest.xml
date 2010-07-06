@@ -17,7 +17,6 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
-		<activity android:name=".TaskList" android:label="@string/top_title" />
 		<activity android:name=".HelpActivity" android:label="@string/help_title" />
 	</application>
 

@@ -27,8 +27,15 @@ public class ChargingLEDLib
 	private static final String G1_PATH = "i2c-0/0-0062";//RGB
 	private static final String MAGIC_PATH = "platform/leds-cpld";//RGB
 	private static final String DROID_PATH = "platform/notification-led";//RGB
+	private static final String HERO_PATH = "platform/i2c-adapter/i2c-0/0-0066";//GA
 
 	private static String pathToUse = DESIRE_PATH;//default to this
+
+	private final static String ECHO_0 = "echo 0 > ";
+	private final static String ECHO_1 = "echo 1 > ";
+	private final static String PATH_PREFIX = "/sys/devices/";
+	private final static String PATH_MID = "/leds/";
+	private final static String PATH_SUFFIX = "/brightness";
 
 	private final static String ROOT_SHELL = "su";
 	private final static String NORMAL_SHELL = "sh";
@@ -44,78 +51,102 @@ public class ChargingLEDLib
 	String [][] MODEL_SETTINGS_MATRIX =
 	{
 			{
-					"Nexus One",
-					NEXUS_PATH,
-					ROOT_SHELL,
-					COLORS_WITHAMBER
+				"Nexus One",
+				NEXUS_PATH,
+				ROOT_SHELL,
+				COLORS_WITHAMBER
 			},
 			{
-					"HTC Desire",
-					DESIRE_PATH,
-					NORMAL_SHELL,
-					COLORS_NORED
-			},
-
-			{
-					"HTC Dream",
-					G1_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
-			},
-			{
-					"T-Mobile G1",
-					G1_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
-			},
-			{
-					"Era G1",
-					G1_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
+				"HTC Desire",
+				DESIRE_PATH,
+				NORMAL_SHELL,
+				COLORS_NORED
 			},
 
 			{
-					"HTC Magic",
-					MAGIC_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
+				"HTC Dream",
+				G1_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
 			},
 			{
-					"HTC Sapphire",
-					MAGIC_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
+				"T-Mobile G1",
+				G1_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
 			},
 			{
-					"T-Mobile myTouch 3G",
-					MAGIC_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
+				"Era G1",
+				G1_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
+			},
+
+			{
+				"HTC Magic",
+				MAGIC_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
 			},
 			{
-					"Docomo HT-03A",
-					MAGIC_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
+				"HTC Sapphire",
+				MAGIC_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
 			},
 			{
-					"Droid A855",
-					DROID_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
+				"T-Mobile myTouch 3G",
+				MAGIC_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
 			},
 			{
-					"Milestone",
-					DROID_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
+				"Docomo HT-03A",
+				MAGIC_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
 			},
 			{
-					"Droid",
-					DROID_PATH,
-					ROOT_SHELL,
-					COLORS_RGB
+				"Droid A855",
+				DROID_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
+			},
+			{
+				"Milestone",
+				DROID_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
+			},
+			{
+				"Droid",
+				DROID_PATH,
+				ROOT_SHELL,
+				COLORS_RGB
+			},
+			{
+				"HTC Hero",
+				HERO_PATH,
+				NORMAL_SHELL,
+				COLORS_RGB
+			},
+			{
+				"HERO200",
+				HERO_PATH,
+				NORMAL_SHELL,
+				COLORS_RGB
+			},
+			{
+				"T-Mobile G2 Touch",
+				HERO_PATH,
+				NORMAL_SHELL,
+				COLORS_RGB
+			},
+			{
+				"ERA G2 Touch",
+				HERO_PATH,
+				NORMAL_SHELL,
+				COLORS_RGB
 			}
 	};
 
@@ -125,12 +156,6 @@ public class ChargingLEDLib
 
 	private static final String COLOR_BLUE = "blue", COLOR_GREEN = "green", COLOR_AMBER = "amber",//G1 has no amber LED, so using red
 			COLOR_RED = "red";//Desire has no red LED, so using amber
-
-	private final static String ECHO_0 = "echo 0 > ";
-	private final static String ECHO_1 = "echo 1 > ";
-	private final static String PATH_PREFIX = "/sys/devices/";
-	private final static String PATH_MID = "/leds/";
-	private final static String PATH_SUFFIX = "/brightness";
 
 	// keep the console used to issue commands open. more efficient
 	private static Process suConsole = null;
@@ -182,7 +207,7 @@ public class ChargingLEDLib
 	 */
 	public void setLEDColor(int totalCPUInt)
 	{
-		if (disabledLEDs) return;//dont do anything
+		if (NetMeter.disabledLEDs) return;//dont do anything
 		if (DEBUG) Log.d(TAG, "CPU=" + totalCPUInt);
 
 		// turn off all colors once at the start.
@@ -409,10 +434,8 @@ public class ChargingLEDLib
 		 */
 	}
 
-	static boolean disabledLEDs=false;
 	public static void setLEDStatus(boolean flag)
 	{
-		disabledLEDs=flag;
 		if(flag == true)
 		{
 			Log.i(TAG,"Turning off all LEDs.");

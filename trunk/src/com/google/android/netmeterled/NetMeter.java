@@ -42,14 +42,15 @@ import android.widget.Toast;
  */
 public class NetMeter extends Activity {
 	 private String TAG;
-
+	 View chart=null;
+	 public static boolean disabledLEDs=false;
+	 CPUStatusChart cpuStatusChart;
 
 	/**
 	 * Service connection callback object used to establish communication with
 	 * the service after binding to it.
 	 */
 	private myServiceConnection mConnection;
-	CPUStatusChart cpuStatusChart;
 
     /**
      * Framework method called when the activity is first created.
@@ -79,8 +80,6 @@ public class NetMeter extends Activity {
         mConnection = new myServiceConnection(this);
 
         }
-    View chart=null;
-	boolean disabledLEDs=false;
 
     /**
      * Framework method to create menu structure.
@@ -102,13 +101,6 @@ public class NetMeter extends Activity {
     		disabledLEDs=!disabledLEDs;
     		ChargingLEDLib.setLEDStatus(disabledLEDs);
     		break;
-    	case R.id.toggle:
-    		break;
-    	case R.id.top:
-    		Intent intent = new Intent();
-            intent.setClass(this, TaskList.class);
-            startActivity(intent);
-            break;
     	case R.id.help:
     		Intent myIntent = new Intent();
     		myIntent.setClass(this, HelpActivity.class);

@@ -38,7 +38,6 @@ public class CPUStatusChart
 	static XYSeries userSeries = new XYSeries(titles[0]);
 	static final int MAX_POINTS = 60; // 5 mins
 	static XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
-
 	static XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
 	static XYSeriesRenderer renderer1 = new XYSeriesRenderer();
 	static XYSeriesRenderer renderer2 = new XYSeriesRenderer();
@@ -73,9 +72,6 @@ public class CPUStatusChart
 				series.add(index++, data.get(i).doubleValue());
 			}
 	}
-
-	final static String newline="\f";
-	final static String tab="\t";
 
 	/**
 	 * Create a chart view

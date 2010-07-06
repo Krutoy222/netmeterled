@@ -18,20 +18,20 @@ class Top {
 	class Task implements Comparable<Task> {
 		final private String mCmd;
 		final private long mUsage;
-		
+
 		Task(final String command, final long usage) {
 			mCmd = command;
 			mUsage = usage;
 		}
-		
+
 		Task delta(Task prev, long total) {
 			return new Task(mCmd, (mUsage - prev.mUsage) * 1000 / total);
 		}
-		
+
 		String getName() {
 			return mCmd;
 		}
-		
+
 		long getUsage() {
 			return mUsage;
 		}
@@ -40,37 +40,37 @@ class Top {
 			if (mUsage == other.mUsage) return mCmd.compareTo(other.mCmd);
 			else return - (int) (mUsage - other.mUsage);
 		}
-		
+
 	}
-	
+
 	Map<Integer, Task> mPrevState;
 	long mPrevCpuTime;
-	
+
 	Top() {
 		mPrevCpuTime = readCpuTime();
 		mPrevState = readProcInfo();
 	}
-	
+
 	public Vector<Task> getTopN() {
 		Map<Integer, Task> current = readProcInfo();
 		long cpu_time = readCpuTime();
 		long delta_time = cpu_time - mPrevCpuTime;
-		
+
 		Set<Integer> pids = current.keySet();
 		pids.retainAll(mPrevState.keySet());
-		
+
 		Vector<Task> results = new Vector<Task>();
 		for(Iterator<Integer> it = pids.iterator(); it.hasNext();) {
 			int index = it.next();
 			results.add(current.get(index).delta(mPrevState.get(index), delta_time));
 		}
 		Collections.sort(results);
-		
+
 		mPrevState = current;
 		mPrevCpuTime = cpu_time;
-		return results;	
+		return results;
 	}
-	
+
 	private Map<Integer, Task> readProcInfo() {
 		Map<Integer, Task> stats = new HashMap<Integer, Task>();
 		File proc_dir = new File("/proc/");
@@ -87,26 +87,25 @@ class Top {
 				String cmdline = segs[1];
 				if (cmdline.contains("(app_process)")) {
 					String pkg_name = readData("/proc/" + files[i]+ "/cmdline");
-
 					cmdline = cleanCmdline(pkg_name);
-				} 
+				}
 				stats.put(Integer.parseInt(files[i]),
 						new Task(cmdline, runtime));
 			}
 		}
 		return stats;
 	}
-	
+
 	private long readCpuTime() {
 		String cpustat = readData("proc/stat");
 		if (cpustat == null) {
 			return 0;
 		}
 		String[] segs = cpustat.split("[ ]+");
-		
+
 		return Long.parseLong(segs[1]) + Long.parseLong(segs[2])
 				+ Long.parseLong(segs[3]) + Long.parseLong(segs[4]);
-		
+
 	}
 
 	private String readData(String filename) {
@@ -117,16 +116,16 @@ class Top {
 			Log.i("NetMeter", "File access error " + filename);
 			return null;
 		}
-		
+
 		BufferedReader in = new BufferedReader(fstream, 500);
 		try {
 			return in.readLine();
 		} catch (IOException e) {
 			Log.i("NetMeter", "read error on " + filename);
 			return null;
-		}	
+		}
 	}
-	
+
 	private String cleanCmdline(String raw) {
 		if ( raw == null ) {
 			return "<invalid>";
