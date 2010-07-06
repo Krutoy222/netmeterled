@@ -15,7 +15,6 @@
  */
 package com.britoso.cpustatusled;
 
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -38,8 +37,6 @@ public class CPUStatusLEDService extends Service
 
 	final private String TAG="CPUStatusLEDService";
 	final private int SAMPLING_INTERVAL = 3;
-
-	private NotificationManager mNM;
 
 	/**
 	 *
@@ -89,8 +86,6 @@ public class CPUStatusLEDService extends Service
 
 		mCpuMon = new CpuMon();
 
-		mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-
 		mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
 
 	}
@@ -101,7 +96,6 @@ public class CPUStatusLEDService extends Service
 	@Override
     public void onDestroy() {
 		Log.i(TAG, "onDestroy");
-		mNM.cancel(R.string.iconized);
 		mHandler.removeCallbacks(mRefresh);
 	}
 
