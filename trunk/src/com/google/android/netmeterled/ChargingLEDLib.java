@@ -418,6 +418,10 @@ public class ChargingLEDLib
 			Log.i(TAG,"Turning off all LEDs.");
 			(new ChargingLEDLib()).turnOffAllLEDs();
 		}
+		else
+		{
+			Log.i(TAG,"Resuming setting LEDs.");
+		}
 
 	}
 }

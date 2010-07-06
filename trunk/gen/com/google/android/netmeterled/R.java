@@ -15,18 +15,25 @@ public final class R {
         public static final int status_icon=0x7f020001;
     }
     public static final class id {
-        public static final int disableleds=0x7f060003;
-        public static final int disp=0x7f060000;
-        public static final int graph=0x7f060001;
-        public static final int help=0x7f060007;
-        public static final int list_item=0x7f060002;
-        public static final int stop=0x7f060006;
-        public static final int toggle=0x7f060004;
-        public static final int top=0x7f060005;
+        public static final int disableleds=0x7f06000a;
+        public static final int help=0x7f06000e;
+        public static final int list_item=0x7f060009;
+        public static final int scrollview=0x7f060008;
+        public static final int stop=0x7f06000d;
+        public static final int toggle=0x7f06000b;
+        public static final int top=0x7f06000c;
+        public static final int top_process=0x7f060007;
+        public static final int top_processes_row=0x7f060006;
+        public static final int widget0=0x7f060000;
+        public static final int widget28=0x7f060001;
+        public static final int widget29=0x7f060003;
+        public static final int widget30=0x7f060004;
+        public static final int widget31=0x7f060005;
+        public static final int widget32=0x7f060002;
     }
     public static final class layout {
         public static final int help=0x7f030000;
-        public static final int main=0x7f030001;
+        public static final int layout=0x7f030001;
         public static final int tasklist=0x7f030002;
     }
     public static final class menu {

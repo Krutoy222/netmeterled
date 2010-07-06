@@ -15,8 +15,6 @@
  */
 package com.google.android.netmeterled;
 
-import java.util.Vector;
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -25,9 +23,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.util.Log;
-import android.widget.TextView;
 
 /**
  * Local service which operates in close cooperation with NetMeter activity.
@@ -58,60 +54,31 @@ public class NetMeterLEDService extends Service {
     }
 	private final IBinder mBinder = new NetMeterBinder();
 
-	// various stats collection objects
-	private StatsProcessor mStatsProc;
 	private CpuMon mCpuMon;
 	//private GraphView mGraph = null;
-	private long mLastTime;
+	private NetMeter gui;
+
+	public NetMeter getGui()
+	{
+		return gui;
+	}
+
+	public void setGui(NetMeter gui)
+	{
+		this.gui = gui;
+		mCpuMon.linkDisplay(gui);
+	}
 
 	// All the polling and display updating is driven from this
 	// hander which is periodically executed every SAMPLING_INTERVAL seconds.
 	private Handler mHandler = new Handler();
 	private Runnable mRefresh = new Runnable() {
 		public void run() {
-			// Compensate for sleep time, since this hander is not getting called
-			// when the device is asleep/suspended
-			long last_time = SystemClock.elapsedRealtime();
-			if (last_time - mLastTime > 10 * SAMPLING_INTERVAL * 1000) {
-				int padding = (int) ((last_time - mLastTime) / (SAMPLING_INTERVAL * 1000));
-				mCpuMon.getHistory().pad(padding);
-
-				Vector<StatCounter> counters = mStatsProc.getCounters();
-				for (int i = 0; i < counters.size(); i++) {
-					counters.get(i).getHistory().pad(padding);
-				}
-			}
-			mLastTime = last_time;
 			//this reads the /proc/stats file
 			mCpuMon.readStats();
-			//if (mGraph != null) mGraph.refresh();
 			mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
 		}
 	};
-
-
-	/**
-	 *
-	 * Link the display objects set up by the controller activity
-	 * to the service so that they can be updated with the latest
-	 * state after each polling interval
-	 *
-	 * In retrospect, this is probably a rather hacky architecture.
-	 *
-	 * @param stats_views text view to display network counters
-	 * @param info_views text views to display network status info
-	 * @param cpu_views text views to display CPU usage information
-	 * @param graph reference to graph widget
-	 */
-	public void setDisplay(Vector<TextView> stats_views,
-			Vector<TextView> info_views,
-			Vector<TextView> cpu_views,
-			GraphView graph) {
-		//mGraph = graph;
-		mStatsProc.linkDisplay(stats_views, info_views, graph);
-		mCpuMon.linkDisplay(cpu_views);
-		graph.linkCounters(mStatsProc.getCounters(), mCpuMon.getHistory());
-	}
 
 	/**
 	 * Framework method called when the service is first created.
@@ -120,15 +87,10 @@ public class NetMeterLEDService extends Service {
     public void onCreate() {
 		Log.i(TAG, "onCreate");
 
-		mStatsProc = new StatsProcessor(SAMPLING_INTERVAL, null, null, null);
 		mCpuMon = new CpuMon();
 
-		mStatsProc.processUpdate();
-		mStatsProc.reset();
 		mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 
-		//postNotification();
-		mLastTime = SystemClock.elapsedRealtime();
 		mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
 
 	}
@@ -158,7 +120,6 @@ public class NetMeterLEDService extends Service {
 	@Override
 	public boolean onUnbind(Intent arg) {
 		Log.i(TAG, "onUnbind");
-		mStatsProc.unlinkDisplay();
 		mCpuMon.unlinkDisplay();
 		//mGraph = null;
 		return true;

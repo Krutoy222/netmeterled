@@ -19,36 +19,30 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Vector;
 
 import android.util.Log;
-import android.widget.TextView;
 
 public class CpuMon {
 	final private String STAT_FILE = "/proc/stat";
-	final private DecimalFormat mPercentFmt = new DecimalFormat("#0.0");
-	 Process p=null;
-
 	private long mUser;
 	private long mSystem;
 	private long mTotal;
 
-	private HistoryBuffer mHistory;
+	static final int MAX_SIZE=CPUStatusChart.MAX_POINTS*2;
+	static ArrayList<Integer> userHistory= new ArrayList<Integer>(MAX_SIZE);
+	static ArrayList<Integer> systemHistory= new ArrayList<Integer>(MAX_SIZE);
 
-	private Vector<TextView> mDisplay;
+	private NetMeter mDisplay;
 
 
 	public CpuMon() {
-		mHistory = new HistoryBuffer();
 		readStats();
 	}
 
-	public HistoryBuffer getHistory() {
-		return mHistory;
-	}
-
-	public void linkDisplay(Vector<TextView> display) {
+	public void linkDisplay(NetMeter display) {
 		mDisplay = display;
 		readStats();
 	}
@@ -70,8 +64,8 @@ public class CpuMon {
 		try {
 			while ((line = in.readLine()) != null) {
 				if (line.startsWith("cpu")) {
-					updateStats(line.trim().split("[ ]+"));
-					return true;
+					updateStats(line.trim().split("[ ]+"));//or expr "[ ]+"
+					return true;//one line only
 				}
 			}
 		} catch (IOException e) {
@@ -82,38 +76,74 @@ public class CpuMon {
 
 	ChargingLEDLib lib = new ChargingLEDLib();
 
+	/*
+	 * line: cpu  312480 23494 10874 1529955 51540 0 8 0 0 0
+	 *            uptime  user systm    idle
+			0 uptime: time since startup
+			1 user: normal processes executing in user mode
+			2 nice: niced processes executing in user mode
+			3 system: processes executing in kernel mode
+			4 idle: twiddling thumbs
+			5 iowait: waiting for I/O to complete
+			6 irq: servicing interrupts
+			7 softirq: servicing softirqs
+	 */
 	private void updateStats(String[] segs) {
-		// user = user + nice
-		long user = Long.parseLong(segs[1]) + Long.parseLong(segs[2]);
-		// system = system + intr + soft_irq
-		long system = Long.parseLong(segs[3]) + Long.parseLong(segs[6]) + Long.parseLong(segs[7]);
-		long total = user + system + Long.parseLong(segs[4]) + Long.parseLong(segs[5]);
-		if (mTotal != 0 || total >= mTotal) {
-			long duser = user - mUser;
-			long dsystem = system - mSystem;
-			long dtotal = total - mTotal;
-			if(dtotal==0)dtotal=1;
+        // user = user + nice
+        long user = Long.parseLong(segs[1]) + Long.parseLong(segs[2]);
+        // system = system + intr + soft_irq
+        long system = Long.parseLong(segs[3]) + Long.parseLong(segs[6]) + Long.parseLong(segs[7]);
+        // total = user + system + idle + io_wait
+        long total = user + system + Long.parseLong(segs[4]) + Long.parseLong(segs[5]);
 
-			int totalCPUInt=new Double((duser+dsystem)*100.0/dtotal).intValue();
-	         //use totalCPUInt  to set LED color.
-			lib.setLEDColor(totalCPUInt);
+        if (mTotal != 0 || total >= mTotal) {
+                long duser = user - mUser;
+                long dsystem = system - mSystem;
+                long dtotal = total - mTotal;
+    			if(userHistory.size()==MAX_SIZE)
+    			{
+    				userHistory.remove(0);
+    				systemHistory.remove(0);
+    			}
+    			userHistory.add(new Integer((int) (duser*100.0/dtotal)));
+    			systemHistory.add(new Integer((int) (dsystem*100.0/dtotal)));
 
-			if (mDisplay != null) {
-				mDisplay.get(0).setText(mPercentFmt.format(
-						(double)(duser+dsystem)*100.0/dtotal) + "% ("
-				+ mPercentFmt.format(
-						(double)(duser)*100.0/dtotal) + "/"
-				+ mPercentFmt.format(
-						(double)(dsystem)*100.0/dtotal) + ")");
-			}
-			mHistory.add((int)((duser + dsystem) * 100 / dtotal));
-		}
-		mUser = user;
-		mSystem = system;
-		mTotal = total;
+    			int totalCPUInt=new Double((duser+dsystem)*100.0/dtotal).intValue();
+    			//use totalCPUInt  to set LED color.
+    			lib.setLEDColor(totalCPUInt);
 
-
+    			if (mDisplay != null)
+    			{
+    				int size=userHistory.size()-1;
+    				mDisplay.setCPUValues(totalCPUInt +"% ("
+    						+userHistory.get(size)+"/"+systemHistory.get(size)+")"
+    							);
+    				if(totalCPUInt>75)
+    					mDisplay.updateGraph(userHistory,systemHistory,getTopN(3));
+    				else
+        				mDisplay.updateGraph(userHistory,systemHistory,null);
+    			}
+        }
+        mUser = user;
+        mSystem = system;
+        mTotal = total;
 	}
 
+	private ArrayList<String> getTopN(int n)
+	{
+		ArrayList<String> processes= new ArrayList<String>(3);
+		Top mTop= new Top();
+    	Vector<Top.Task> top_list = mTop.getTopN();
+    	int count =0;
+		for(Iterator<Top.Task> it = top_list.iterator(); it.hasNext();) {
+			Top.Task task = it.next();
+			//if (task.getUsage() == 0) break;
+			if(task.getName().indexOf("oid.netmeterled")>0)continue;
+			processes.add(task.getUsage()/10+"% "+task.getName());
+			count++;
+			if(count==n)break;
+		}
+		return processes;
+	}
 
 }
