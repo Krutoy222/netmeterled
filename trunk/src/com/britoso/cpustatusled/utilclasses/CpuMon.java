@@ -43,11 +43,11 @@ public class CpuMon {
 	private CPUStatusLED mDisplay;
 
 	ChargingLEDLib lib = new ChargingLEDLib();
-	TelephonyManager telManager;
+	public static TelephonyManager telManager;//static to keep it alive
 
 
 	public CpuMon(TelephonyManager telManager) {
-		this.telManager=telManager;
+		CpuMon.telManager=telManager;
 		readStats();
 	}
 
@@ -83,7 +83,7 @@ public class CpuMon {
 		return false;
 	}
 
-	final static int wastepoints=5;//wait for readings to stabilize on startup.
+	final static int wastepoints=4;//wait for readings to stabilize on startup.
 	/*
 	 * line: cpu  312480 23494 10874 1529955 51540 0 8 0 0 0
 	 *            uptime  user systm    idle
@@ -109,6 +109,7 @@ public class CpuMon {
                 long duser = user - mUser;
                 long dsystem = system - mSystem;
                 long dtotal = total - mTotal;
+                //if the buffer is full
     			if(userHistory.size()==MAX_SIZE)
     			{
     				userHistory.remove(0);
