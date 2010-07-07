@@ -18,13 +18,11 @@ package com.britoso.cpustatusled;
 
 import java.util.ArrayList;
 
-import com.britoso.cpustatusled.R;
-import com.britoso.cpustatusled.utilclasses.ChargingLEDLib;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,6 +31,8 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.britoso.cpustatusled.utilclasses.ChargingLEDLib;
 
 /**
  *
@@ -64,6 +64,7 @@ public class CPUStatusLED extends Activity {
         TAG=this.getResources().getText(R.string.app_name).toString();
         //Log.i(TAG, "onCreate");
         startService(new Intent(this, CPUStatusLEDService.class));
+        CPUStatusLEDService.setTelephonyManager((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
 
         //Log.i(TAG, "checking intent for parameters");
         if(this.getIntent()!=null && this.getIntent().getExtras()!=null && this.getIntent().getExtras().getBoolean("start_minimized"))
@@ -148,7 +149,7 @@ public class CPUStatusLED extends Activity {
     	tv.setText(value);
     }
 
-	public void updateGraph(ArrayList<Integer> userHistory, ArrayList<Integer> systemHistory, ArrayList<String> topProcesses)
+	public void updateGraph(ArrayList<Integer> userHistory, ArrayList<Integer> systemHistory,ArrayList<Integer> signalHistory, ArrayList<String> topProcesses)
 	{
 		if(topProcesses !=null && topProcesses.size()>=3)
 		{
@@ -159,7 +160,7 @@ public class CPUStatusLED extends Activity {
 			((TextView)this.findViewById(R.id.top_process)).setText("");
 		}
 
-		chart=cpuStatusChart.createView(this, userHistory, systemHistory);
+		chart=cpuStatusChart.createView(this, userHistory, systemHistory, signalHistory);
 		chart.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
         ScrollView sv= (ScrollView)this.findViewById(R.id.scrollview);
         sv.removeAllViews();

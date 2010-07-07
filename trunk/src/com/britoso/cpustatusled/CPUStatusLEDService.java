@@ -15,14 +15,16 @@
  */
 package com.britoso.cpustatusled;
 
-import com.britoso.cpustatusled.utilclasses.CpuMon;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import com.britoso.cpustatusled.utilclasses.CpuMon;
+import com.britoso.cpustatusled.utilclasses.myPhoneStateListener;
 
 /**
  * Local service which operates in close cooperation with CPUStatusLED activity.
@@ -75,9 +77,12 @@ public class CPUStatusLEDService extends Service
 			//this reads the /proc/stats file
 			mCpuMon.readStats();
 			mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
+
 		}
 	};
 
+	static myPhoneStateListener signalListener;
+	static TelephonyManager telManager;
 	/**
 	 * Framework method called when the service is first created.
 	 */
@@ -85,10 +90,10 @@ public class CPUStatusLEDService extends Service
     public void onCreate() {
 		Log.i(TAG, "onCreate");
 
-		mCpuMon = new CpuMon();
-
+		mCpuMon = new CpuMon(telManager);
 		mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
-
+		//monitor signal strength
+		signalListener= new myPhoneStateListener();
 	}
 
 	/**
@@ -118,6 +123,12 @@ public class CPUStatusLEDService extends Service
 		mCpuMon.unlinkDisplay();
 		//mGraph = null;
 		return true;
+	}
+
+	public static void setTelephonyManager(TelephonyManager systemService)
+	{
+		telManager=systemService;
+
 	}
 
 }
