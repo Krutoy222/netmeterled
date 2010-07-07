@@ -23,9 +23,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
-import com.britoso.cpustatusled.CPUStatusLED;
-
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import com.britoso.cpustatusled.CPUStatusLED;
 
 public class CpuMon {
 	final private String STAT_FILE = "/proc/stat";
@@ -36,13 +38,16 @@ public class CpuMon {
 	static final int MAX_SIZE=CPUStatusChart.MAX_POINTS*2;
 	static ArrayList<Integer> userHistory= new ArrayList<Integer>(MAX_SIZE);
 	static ArrayList<Integer> systemHistory= new ArrayList<Integer>(MAX_SIZE);
+	static ArrayList<Integer> signalHistory= new ArrayList<Integer>(MAX_SIZE);
 
 	private CPUStatusLED mDisplay;
 
 	ChargingLEDLib lib = new ChargingLEDLib();
+	TelephonyManager telManager;
 
 
-	public CpuMon() {
+	public CpuMon(TelephonyManager telManager) {
+		this.telManager=telManager;
 		readStats();
 	}
 
@@ -78,6 +83,7 @@ public class CpuMon {
 		return false;
 	}
 
+	final static int wastepoints=5;//wait for readings to stabilize on startup.
 	/*
 	 * line: cpu  312480 23494 10874 1529955 51540 0 8 0 0 0
 	 *            uptime  user systm    idle
@@ -98,7 +104,8 @@ public class CpuMon {
         // total = user + system + idle + io_wait
         long total = user + system + Long.parseLong(segs[4]) + Long.parseLong(segs[5]);
 
-        if (mTotal != 0 || total >= mTotal) {
+        if (mTotal != 0 || total >= mTotal)
+        {
                 long duser = user - mUser;
                 long dsystem = system - mSystem;
                 long dtotal = total - mTotal;
@@ -106,10 +113,21 @@ public class CpuMon {
     			{
     				userHistory.remove(0);
     				systemHistory.remove(0);
+    				signalHistory.remove(0);
     			}
-    			userHistory.add(new Integer((int) (duser*100.0/dtotal)));
-    			systemHistory.add(new Integer((int) (dsystem*100.0/dtotal)));
-
+    			if(userHistory.size()<wastepoints)
+    			{
+    				userHistory.add(new Integer(0));
+    				systemHistory.add(new Integer(0));
+    				signalHistory.add(new Integer(0));
+    			}
+    			else
+    			{
+    				userHistory.add(new Integer((int) (duser*100.0/dtotal)));
+    				systemHistory.add(new Integer((int) (dsystem*100.0/dtotal)));
+					//Log.i("blah%",""+getGSMSignalStrengthPercent());
+					signalHistory.add(getGSMSignalStrengthPercent());
+				}
     			int totalCPUInt=new Double((duser+dsystem)*100.0/dtotal).intValue();
     			//use totalCPUInt  to set LED color.
     			lib.setLEDColor(totalCPUInt);
@@ -117,16 +135,14 @@ public class CpuMon {
     			if (mDisplay != null)
     			{
     				int size=userHistory.size()-1;
-    				mDisplay.setCPUValues(totalCPUInt +"% ("
-    						+userHistory.get(size)+"/"+systemHistory.get(size)+")"
-    							);
+    				mDisplay.setCPUValues(totalCPUInt +"% ("+userHistory.get(size)+"/"+systemHistory.get(size)+")");
     				if(totalCPUInt>75)
     				{
-    					mDisplay.updateGraph(userHistory,systemHistory,getTopN(3));
+    					mDisplay.updateGraph(userHistory,systemHistory,signalHistory, getTopN(3));
     				}
     				else
     				{
-        				mDisplay.updateGraph(userHistory,systemHistory,null);
+        				mDisplay.updateGraph(userHistory,systemHistory,signalHistory,null);
     				}
     			}
         }
@@ -155,6 +171,20 @@ public class CpuMon {
 			if(count==n)break;
 		}
 		return processes;
+	}
+
+	myPhoneStateListener signalListener;
+	static int max_signal_seen=16;
+	int signal;
+	public int getGSMSignalStrengthPercent()
+	{
+        if(signalListener==null)
+        	signalListener=new myPhoneStateListener();
+        if(telManager!=null)
+        	telManager.listen(signalListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+        signal=signalListener.getLastGSMStrength();
+        if(signal>max_signal_seen)max_signal_seen=signal;
+        return (int)((double)signal/max_signal_seen*100.0);
 	}
 
 }

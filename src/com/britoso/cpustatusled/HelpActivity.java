@@ -15,13 +15,8 @@
  */
 package com.britoso.cpustatusled;
 
-import java.util.regex.Pattern;
-
-import com.britoso.cpustatusled.R;
-
 import android.app.Activity;
 import android.os.Bundle;
-import android.text.util.Linkify;
 import android.widget.TextView;
 
 /**
@@ -38,21 +33,13 @@ public class HelpActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Set the layout for this activity.  You can find it
-        // in res/layout/help.xml
         setContentView(R.layout.help);
         TextView tv = (TextView) findViewById(R.id.helptext);
         String text = this.getResources().getText(R.string.help_text).toString();
+        text=text.replaceAll("APPNAME",this.getResources().getText(R.string.app_name).toString());
+        text=text.replaceAll("APPVERSION",this.getResources().getText(R.string.app_version).toString());
         tv.setText(text);
-        Linkify.addLinks(tv, Linkify.ALL);
-//        //pattern we want to match and turn into a clickable link
-//        Pattern pattern1 = Pattern.compile("code.google.com");
-//        //prefix our pattern with http://
-//        Linkify.addLinks(tv, pattern1, "http://");
-////        Pattern pattern2 = Pattern.compile("code.google.com/p/android-labs");
-////        //prefix our pattern with http://
-////        Linkify.addLinks(tv, pattern2, "http://");
+        //Linkify.addLinks(tv, Linkify.ALL);
 
     }
 

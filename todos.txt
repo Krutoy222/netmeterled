@@ -1,7 +1,7 @@
 Todos:
 -move each phone model settings to a preference file
 -save default color brackets and color order for each phone model
-
+-use 'busybox top -b -n1' for phones that have root.
 on startup- check if we recognize the model, else ask 'launch led detection?'
 
 menu
