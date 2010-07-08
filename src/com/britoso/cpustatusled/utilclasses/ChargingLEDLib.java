@@ -1,11 +1,12 @@
 package com.britoso.cpustatusled.utilclasses;
 
 import java.io.DataOutputStream;
+import java.io.File;
+
+import android.util.Log;
 
 import com.britoso.cpustatusled.CPUStatusLED;
-
-import android.graphics.Color;
-import android.util.Log;
+import com.britoso.cpustatusled.utilclasses.ShellCommand.CommandResult;
 
 /**
  * This library offers methods to set the charging LED color.
@@ -16,203 +17,215 @@ import android.util.Log;
  */
 public class ChargingLEDLib
 {
-	private final static int LOWEST_THRESHHOLD = 2; // off
-	private final static int LOW_THRESHHOLD = 15;// blue
-	private final static int MEDIUM_THRESHHOLD = 40;// green
-	private final static int HIGH_THRESHHOLD = 75;// amber
-	// above high=RED
-	private boolean blue, red, amber, green, initialized;
+	private static boolean initialized;
 	private final static boolean DEBUG = false;
-
-	private static final String NEXUS_PATH = "i2c-0/0-0066";//GBAR
-	private static final String DESIRE_PATH = "platform/leds-microp";//GBA, no root
-	private static final String G1_PATH = "i2c-0/0-0062";//RGB
-	private static final String MAGIC_PATH = "platform/leds-cpld";//RGB
-	private static final String DROID_PATH = "platform/notification-led";//RGB
-	private static final String HERO_PATH = "platform/i2c-adapter/i2c-0/0-0066";//GA
-	private static final String INCREDIBLE_PATH = "platform/leds-microp";//GA
-
-	private static String pathToUse = DESIRE_PATH;//default to this
-
 	private final static String ECHO_0 = "echo 0 > ";
 	private final static String ECHO_1 = "echo 1 > ";
-	private final static String PATH_PREFIX = "/sys/devices/";
-	private final static String PATH_MID = "/leds/";
-	private final static String PATH_SUFFIX = "/brightness";
-
 	private final static String ROOT_SHELL = "su";
 	private final static String NORMAL_SHELL = "sh";
-	private static String shellOpenCommand = ROOT_SHELL;//default
-
-	private final static String COLORS_WITHAMBER = "RGBA";
-	private final static String COLORS_RGB = "RGB";
-	private final static String COLORS_NORED = "GBA";
-	private final static String COLORS_GA = "GA";
-
-	private static String colorsToUse = COLORS_RGB;//default to this
-
-	//model name, led path, shell to use, colors supported
-	String [][] MODEL_SETTINGS_MATRIX =
-	{
-			{
-				"Nexus One",
-				NEXUS_PATH,
-				ROOT_SHELL,
-				COLORS_WITHAMBER
-			},
-			{
-				"HTC Desire",
-				DESIRE_PATH,
-				NORMAL_SHELL,
-				COLORS_NORED
-			},
-
-			{
-				"HTC Dream",
-				G1_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"T-Mobile G1",
-				G1_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"Era G1",
-				G1_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-
-			{
-				"HTC Magic",
-				MAGIC_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"HTC Sapphire",
-				MAGIC_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"T-Mobile myTouch 3G",
-				MAGIC_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"Docomo HT-03A",
-				MAGIC_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"Droid A855",
-				DROID_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"Milestone",
-				DROID_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"Droid",
-				DROID_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"HTC Hero",
-				HERO_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"HERO200",
-				HERO_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"T-Mobile G2 Touch",
-				HERO_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"ERA G2 Touch",
-				HERO_PATH,
-				ROOT_SHELL,
-				COLORS_RGB
-			},
-			{
-				"ADR6300",
-				INCREDIBLE_PATH,
-				ROOT_SHELL,
-				COLORS_GA
-			},
-			{
-				"Droid Incredible",
-				INCREDIBLE_PATH,
-				ROOT_SHELL,
-				COLORS_GA
-			}
-	};
-
+	private static String shellOpenCommand;
 	private static String model = null;
-
 	private final static String TAG = "CPUStatusLED";
-
 	private static final String COLOR_BLUE = "blue", COLOR_GREEN = "green", COLOR_AMBER = "amber", COLOR_RED = "red";
 
 	// keep the console used to issue commands open. more efficient
-	private static Process suConsole = null;
+	private static Process console = null;
 	private static DataOutputStream os = null;
+
+	private static int[] THRESHHOLDS={3,15,40,75};
+	private static String colorOrder[]= new String[4];
+	private static String ledpaths[]= new String[4];
+
+	static CPUStatusLED gui;
+
+	public ChargingLEDLib(CPUStatusLED gui)
+	{
+		ChargingLEDLib.gui=gui;
+	}
+
+	public ChargingLEDLib()
+	{
+	}
 
 	private void initialize()
 	{
+		//model
 		model = android.os.Build.MODEL;
 		Log.i(TAG, "Phone Model=" + model);
-		setPathBasedOnModel();
-		turnOffAllLEDs();
-		//resetLEDBrightness();//incase someone was playing with it.
-	}
 
-	private void setPathBasedOnModel()
-	{
-		//get phone settings from the MODEL_SETTINGS_MATRIX matrix
-		int row;
-		for (row = 0; row < MODEL_SETTINGS_MATRIX.length; row++)
+		//leds
+		String leds=detectLEDs();
+		int ledcount=0;
+		String[] lines=leds.trim().split("\n");
+		for (int i=0;i<lines.length;i++)
 		{
-			if (MODEL_SETTINGS_MATRIX[row][0].equalsIgnoreCase(model))
+			if(lines[i].indexOf(COLOR_RED)>-1
+					|| lines[i].indexOf(COLOR_GREEN)>-1
+					|| lines[i].indexOf(COLOR_BLUE)>-1
+					|| lines[i].indexOf(COLOR_AMBER)>-1
+			)
+			ledcount++;
+		}
+		Log.i(TAG,"Found "+ledcount+" LEDs!");
+		//set default color order. 4 positions.
+		int colorsused=0;
+		boolean blue=false,green=false,amber=false,red=false;
+		while(colorsused < ledcount)
+		{
+			//Log.i(TAG,"Colors USed="+colorsused);
+			if(blue==false)
 			{
-				pathToUse = MODEL_SETTINGS_MATRIX[row][1];
-				shellOpenCommand = MODEL_SETTINGS_MATRIX[row][2];
-				colorsToUse = MODEL_SETTINGS_MATRIX[row][3];
-				Log.i(TAG, "Using: path=" + pathToUse + " shell=" + shellOpenCommand + " colors=" + colorsToUse);
-				break;
+				if(leds.indexOf(COLOR_BLUE)>-1)
+				{
+					colorOrder[colorsused++]=COLOR_BLUE;
+					blue=true;//used
+				}
+				else
+				{
+					if(leds.indexOf(COLOR_GREEN)>-1)
+					{
+						colorOrder[colorsused++]=COLOR_GREEN;
+						green=true;
+					}
+				}
+				continue;
+			}
+			if(green==false)
+			{
+				if(leds.indexOf(COLOR_GREEN)>-1)
+				{
+					colorOrder[colorsused++]=COLOR_GREEN;
+					green=true;//used
+				}
+				else
+				{
+					if(leds.indexOf(COLOR_AMBER)>-1)
+					{
+						colorOrder[colorsused++]=COLOR_AMBER;
+						amber=true;
+					}
+				}
+				continue;
+			}
+			if(amber==false)
+			{
+				if(leds.indexOf(COLOR_AMBER)>-1)
+				{
+					colorOrder[colorsused++]=COLOR_AMBER;
+					amber=true;//used
+				}
+				else
+				{
+					if(leds.indexOf(COLOR_RED)>-1)
+					{
+						colorOrder[colorsused++]=COLOR_RED;
+						red=true;
+					}
+				}
+				continue;
+			}
+			if(red==false)
+			{
+				if(leds.indexOf(COLOR_RED)>-1)
+				{
+					colorOrder[colorsused++]=COLOR_RED;
+					red=true;//used
+				}
+				continue;
 			}
 		}
+
+		if(colorOrder[0]==null)
+		{
+			if(gui!=null)
+				gui.showNoLEDsAlert();//exit or continue
+		}
+
+		//use the last color for all the remaining slots, i.e for the Hero it will be: Green, Amber  +Amber+Amber
+		for(int i=1;i<colorOrder.length;i++)
+		{
+			if(colorOrder[i]==null)
+			{
+				colorOrder[i]=colorOrder[i-1];
+			}
+		}
+		Log.i(TAG,"Colors= "+colorOrder[0]+" "+colorOrder[1]+" "+colorOrder[2]+" "+colorOrder[3]+" ");
+
+		//assign paths corresponding to ColorOrder
+		for(int i=0;i<ledpaths.length;i++)
+		{
+			for(int j=0;j<lines.length;j++)
+			{
+				if(lines[j].indexOf(colorOrder[i])>-1)
+				{
+					ledpaths[i]=lines[j];
+					break;
+				}
+			}
+		}
+		for(int i=0;i<ledpaths.length;i++)
+			Log.i(TAG,"Color["+i+"]="+colorOrder[i]+"\tpath["+i+"] ="+ledpaths[i]+"\n");
+
+		if(ledpaths.length>0)
+		{
+			if(isWriteable(ledpaths[0]))
+			{
+				shellOpenCommand=NORMAL_SHELL;
+			}
+			else
+			{
+				shellOpenCommand=ROOT_SHELL;
+			}
+		}
+		Log.i(TAG, "Shell = "+shellOpenCommand);
+
 	}
+
+	private boolean isWriteable(String file)
+	{
+		File f= new File(file);
+		return f.canWrite();
+	}
+
+	private String detectLEDs()
+	{
+		  ShellCommand cmd = new ShellCommand();
+		  CommandResult r = cmd.sh.runWaitFor("find /sys/devices/ -name \"brightness\"");
+		  String result="";
+
+		  if (!r.success())
+		  {
+			  //try su. need root to run find on some phones!
+			  CommandResult r1 = cmd.su.runWaitFor("find /sys/devices/ -name \"brightness\"");
+			  if (!r1.success())
+			  {
+				  Log.d(TAG, "Error in detectLEDs: " + r.stderr);
+			  }
+			  else
+			  {
+				  result=r1.stdout;
+			  }
+		  }
+		  else
+		  {
+		      //Log.d(TAG, "Successfully executed. Result: " + r.stdout);
+			  result=r.stdout;
+		  }
+		return result;
+	}
+
 
 	/**
 	 * turn off all known LEDs
 	 */
 	public void turnOffAllLEDs()
 	{
-		if (colorsToUse.indexOf("B") > -1) turnOffLED(COLOR_BLUE);
-		if (colorsToUse.indexOf("G") > -1) turnOffLED(COLOR_GREEN);
-		if (colorsToUse.indexOf("A") > -1) turnOffLED(COLOR_AMBER);
-		if (colorsToUse.indexOf("R") > -1) turnOffLED(COLOR_RED);
+		if (CPUStatusLED.noLEDs) return;
+		for(int i=0;i<ledpaths.length;i++)
+			runShellCommand(ECHO_0 + ledpaths[i]);
 	}
 
+	static int lastThreshhold=0;
 	/**
 	 * set the charging LED color appropriately
 	 *
@@ -222,137 +235,67 @@ public class ChargingLEDLib
 	 */
 	public void setLEDColor(int totalCPUInt)
 	{
-		if (CPUStatusLED.disabledLEDs) return;//dont do anything
+		if (CPUStatusLED.disabledLEDs ||CPUStatusLED.noLEDs) return;//dont do anything
 		if (DEBUG) Log.d(TAG, "CPU=" + totalCPUInt);
 
 		// turn off all colors once at the start.
 		if (initialized == false)
 		{
-			initialize();
 			initialized = true;
+			initialize();
+			turnOffAllLEDs();
 		}
-
-		if (totalCPUInt <= LOWEST_THRESHHOLD)
+		int threshhold=getThreshHold(totalCPUInt);
+		if(threshhold != lastThreshhold)
 		{
-			turnOffAllLitLEDs();
-		}
-		else if (totalCPUInt > LOWEST_THRESHHOLD && totalCPUInt < LOW_THRESHHOLD)
-		{
-			if (colorsToUse.indexOf("B") == -1)
+			if(lastThreshhold>=0)
 			{
-				//no blue, use green
-				turnOffAllLitLEDs();
-				green = true;
-				turnOnLED(COLOR_GREEN);
+				runShellCommand(ECHO_0 + ledpaths[lastThreshhold]);
 			}
-			else
+			if(threshhold>=0)
 			{
-				if (blue == false)
-				{
-					turnOffAllLitLEDs();
-					blue = true;
-					turnOnLED(COLOR_BLUE);
-				}
+				runShellCommand(ECHO_1 + ledpaths[threshhold]);
 			}
-		}
-		else if (totalCPUInt >= LOW_THRESHHOLD && totalCPUInt < MEDIUM_THRESHHOLD)
-		{
-			if (green == false)
-			{
-				turnOffAllLitLEDs();
-				green = true;
-				turnOnLED(COLOR_GREEN);
-			}
-		}
-		else if (totalCPUInt >= MEDIUM_THRESHHOLD && totalCPUInt < HIGH_THRESHHOLD)
-		{
-			if (amber == false)
-			{
-				turnOffAllLitLEDs();
-
-				if (colorsToUse.indexOf("A") == -1)//no amber, use red instead, TODO: what if there is no RED
-				{
-					red = true;
-					turnOnLED(COLOR_RED);
-				}
-				else
-				{
-					amber = true;
-					turnOnLED(COLOR_AMBER);
-				}
-			}
-		}
-		else if (totalCPUInt >= HIGH_THRESHHOLD)
-		{
-			if (red == false)
-			{
-				turnOffAllLitLEDs();
-				if (colorsToUse.indexOf("R") == -1)//no red, use amber
-				{
-					turnOnLED(COLOR_AMBER);
-					amber = true;
-				}
-				else
-				{
-					turnOnLED(COLOR_RED);
-					red = true;
-				}
-
-				//setHexColor("#00FFFF");
-			}
+			lastThreshhold=threshhold;
 		}
 
 	}
 
-	private void turnOnLED(String color)
+	private int getThreshHold(int totalCPUInt)
 	{
-		runRootCommand(ECHO_1 + PATH_PREFIX + pathToUse + PATH_MID + color + PATH_SUFFIX);
+		if (totalCPUInt <= THRESHHOLDS[0])
+		{
+			return -1;//off
+		}
+		else if (totalCPUInt > THRESHHOLDS[0] && totalCPUInt < THRESHHOLDS[1])
+		{
+			return 0;
+		}
+		else if (totalCPUInt >= THRESHHOLDS[1] && totalCPUInt < THRESHHOLDS[2])
+		{
+			return 1;
+		}
+		else if (totalCPUInt >= THRESHHOLDS[2] && totalCPUInt < THRESHHOLDS[3])
+		{
+			return 2;
+		}
+		else if (totalCPUInt >= THRESHHOLDS[3])
+		{
+			return 3;
+		}
+		return -1;
 	}
 
-	private void turnOffLED(String color)
-	{
-		runRootCommand(ECHO_0 + PATH_PREFIX + pathToUse + PATH_MID + color + PATH_SUFFIX);
-	}
 
-	/**
-	 * turn off only if needed.
-	 */
-	private void turnOffAllLitLEDs()
-	{
-		if (blue)
-		{
-			turnOffLED(COLOR_BLUE);
-			blue = false;
-		}
-
-		if (green)
-		{
-			turnOffLED(COLOR_GREEN);
-			green = false;
-		}
-
-		if (amber)
-		{
-			turnOffLED(COLOR_AMBER);
-			amber = false;
-		}
-
-		if (red)
-		{
-			turnOffLED(COLOR_RED);
-			red = false;
-		}
-	}
-
-	private boolean runRootCommand(String command)
+	private boolean runShellCommand(String command)
 	{
 		try
 		{
 			// check if we have the console created.
-			if (suConsole == null || os == null)
+			if (console == null || os == null)
 			{
-				suConsole = Runtime.getRuntime().exec(shellOpenCommand);
-				os = new DataOutputStream(suConsole.getOutputStream());
+				console = Runtime.getRuntime().exec(shellOpenCommand);
+				os = new DataOutputStream(console.getOutputStream());
 			}
 			if (DEBUG) Log.d(TAG, "Running command: " + command);
 			os.writeBytes(command + "\n");
@@ -364,7 +307,6 @@ public class ChargingLEDLib
 			if (e instanceof java.io.IOException && e.getMessage().equalsIgnoreCase("Broken pipe"))
 			{
 				//we may have lost our shell, force a retry next time.
-				//iLog.d(TAG,"Reset Outputstream.");
 				os = null;
 			}
 			return false;
@@ -372,100 +314,5 @@ public class ChargingLEDLib
 		return true;
 	}
 
-	public void setColor(int r, int g, int b)
-	{
-		turnOffAllLEDs();
-		if (r > 0)
-		{
-			turnOnLED(COLOR_RED);
-			setLEDBrightness(COLOR_RED, r);
-		}
-		if (g > 0)
-		{
-			turnOnLED(COLOR_GREEN);
-			setLEDBrightness(COLOR_GREEN, g);
-		}
-		if (b > 0)
-		{
-			turnOnLED(COLOR_BLUE);
-			setLEDBrightness(COLOR_BLUE, b);
-		}
-	}
 
-	/**
-	 *
-	 * @param rgb
-	 *            Supported formats are: #RRGGBB #AARRGGBB 'red', 'blue',
-	 *            'green', 'black', 'white', 'gray', 'cyan', 'magenta',
-	 *            'yellow', 'lightgray', 'darkgray'
-	 */
-	public void setHexColor(String rgb)
-	{
-		int inColor;
-
-		try
-		{
-			inColor = Color.parseColor(rgb);
-		}
-		catch (IllegalArgumentException ie)
-		{
-			Log.d(TAG, "Error parsing  hex color.");
-			return;
-		}
-
-		if (Color.red(inColor) > 0)
-		{
-			turnOnLED(COLOR_RED);
-			Log.d(TAG, "setting red color brightness :" + Color.red(inColor));
-			setLEDBrightness(COLOR_RED, Color.red(inColor));
-		}
-		if (Color.green(inColor) > 0)
-		{
-			turnOnLED(COLOR_GREEN);
-			Log.d(TAG, "setting green color brightness :" + Color.green(inColor));
-			setLEDBrightness(COLOR_GREEN, Color.green(inColor));
-		}
-		if (Color.blue(inColor) > 0)
-		{
-			turnOnLED(COLOR_BLUE);
-			Log.d(TAG, "setting blue color brightness :" + Color.blue(inColor));
-			setLEDBrightness(COLOR_BLUE, Color.blue(inColor));
-		}
-	}
-
-	private void setLEDBrightness(String color, int value)
-	{
-		if (color != null && color.length() > 0 && value >= 0 && value <= 255) runRootCommand("echo " + value + " > /sys/devices/" + pathToUse + "/leds/"
-				+ color + "/max_brightness");
-	}
-
-	public void resetLEDBrightness()
-	{
-		/*
-		 * commented as it does not do anything
-		 * if(!model.equalsIgnoreCase(HTC_DESIRE_MODEL))
-		 * runRootCommand("echo 255 > /sys/devices/"
-		 * +pathToUse+"/red/max_brightness");
-		 * runRootCommand("echo 255 > /sys/devices/"
-		 * +pathToUse+"/green/max_brightness");
-		 * runRootCommand("echo 255 > /sys/devices/"
-		 * +pathToUse+"/blue/max_brightness");
-		 * runRootCommand("echo 255 > /sys/devices/"
-		 * +pathToUse+"/amber/max_brightness");
-		 */
-	}
-
-	public static void setLEDStatus(boolean flag)
-	{
-		if(flag == true)
-		{
-			Log.i(TAG,"Turning off all LEDs.");
-			(new ChargingLEDLib()).turnOffAllLEDs();
-		}
-		else
-		{
-			Log.i(TAG,"Resuming setting LEDs.");
-		}
-
-	}
 }
