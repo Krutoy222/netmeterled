@@ -20,6 +20,4 @@ menu
 			-turn off
 		-save in preference named 'Model'
 		-display results (table 3xn, led name, location, root)
-	-about (dialog)
-	-turn off leds
 
