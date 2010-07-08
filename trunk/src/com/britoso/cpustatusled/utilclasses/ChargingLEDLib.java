@@ -30,6 +30,7 @@ public class ChargingLEDLib
 	private static final String MAGIC_PATH = "platform/leds-cpld";//RGB
 	private static final String DROID_PATH = "platform/notification-led";//RGB
 	private static final String HERO_PATH = "platform/i2c-adapter/i2c-0/0-0066";//GA
+	private static final String INCREDIBLE_PATH = "platform/leds-microp";//GA
 
 	private static String pathToUse = DESIRE_PATH;//default to this
 
@@ -46,6 +47,7 @@ public class ChargingLEDLib
 	private final static String COLORS_WITHAMBER = "RGBA";
 	private final static String COLORS_RGB = "RGB";
 	private final static String COLORS_NORED = "GBA";
+	private final static String COLORS_GA = "GA";
 
 	private static String colorsToUse = COLORS_RGB;//default to this
 
@@ -129,26 +131,38 @@ public class ChargingLEDLib
 			{
 				"HTC Hero",
 				HERO_PATH,
-				NORMAL_SHELL,
+				ROOT_SHELL,
 				COLORS_RGB
 			},
 			{
 				"HERO200",
 				HERO_PATH,
-				NORMAL_SHELL,
+				ROOT_SHELL,
 				COLORS_RGB
 			},
 			{
 				"T-Mobile G2 Touch",
 				HERO_PATH,
-				NORMAL_SHELL,
+				ROOT_SHELL,
 				COLORS_RGB
 			},
 			{
 				"ERA G2 Touch",
 				HERO_PATH,
-				NORMAL_SHELL,
+				ROOT_SHELL,
 				COLORS_RGB
+			},
+			{
+				"ADR6300",
+				INCREDIBLE_PATH,
+				ROOT_SHELL,
+				COLORS_GA
+			},
+			{
+				"Droid Incredible",
+				INCREDIBLE_PATH,
+				ROOT_SHELL,
+				COLORS_GA
 			}
 	};
 
@@ -156,8 +170,7 @@ public class ChargingLEDLib
 
 	private final static String TAG = "CPUStatusLED";
 
-	private static final String COLOR_BLUE = "blue", COLOR_GREEN = "green", COLOR_AMBER = "amber",//G1 has no amber LED, so using red
-			COLOR_RED = "red";//Desire has no red LED, so using amber
+	private static final String COLOR_BLUE = "blue", COLOR_GREEN = "green", COLOR_AMBER = "amber", COLOR_RED = "red";
 
 	// keep the console used to issue commands open. more efficient
 	private static Process suConsole = null;
@@ -225,11 +238,21 @@ public class ChargingLEDLib
 		}
 		else if (totalCPUInt > LOWEST_THRESHHOLD && totalCPUInt < LOW_THRESHHOLD)
 		{
-			if (blue == false)
+			if (colorsToUse.indexOf("B") == -1)
 			{
+				//no blue, use green
 				turnOffAllLitLEDs();
-				blue = true;
-				turnOnLED(COLOR_BLUE);
+				green = true;
+				turnOnLED(COLOR_GREEN);
+			}
+			else
+			{
+				if (blue == false)
+				{
+					turnOffAllLitLEDs();
+					blue = true;
+					turnOnLED(COLOR_BLUE);
+				}
 			}
 		}
 		else if (totalCPUInt >= LOW_THRESHHOLD && totalCPUInt < MEDIUM_THRESHHOLD)
@@ -334,17 +357,13 @@ public class ChargingLEDLib
 			if (DEBUG) Log.d(TAG, "Running command: " + command);
 			os.writeBytes(command + "\n");
 			os.flush();
-			//uncomment if deemed necessary
-			//			synchronized (suConsole)
-			//			{
-			//				suConsole.wait(100);
-			//			}
 		}
 		catch (Exception e)
 		{
 			Log.d(TAG, "Unexpected error running system command: " + command + " Error:" + e.getMessage());
 			if (e instanceof java.io.IOException && e.getMessage().equalsIgnoreCase("Broken pipe"))
-			{ //we may have lost our shell, force a retry next time.
+			{
+				//we may have lost our shell, force a retry next time.
 				//iLog.d(TAG,"Reset Outputstream.");
 				os = null;
 			}
