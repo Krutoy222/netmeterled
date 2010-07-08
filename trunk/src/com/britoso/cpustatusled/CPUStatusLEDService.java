@@ -90,6 +90,7 @@ public class CPUStatusLEDService extends Service
     public void onCreate() {
 		Log.i(TAG, "onCreate");
 
+		if(gui==null) stopSelf();
 		mCpuMon = new CpuMon(telManager);
 		mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
 		//monitor signal strength
