@@ -16,6 +16,7 @@
 package com.britoso.cpustatusled;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
@@ -41,6 +42,8 @@ public class CPUStatusLEDService extends Service
 
 	final private String TAG="CPUStatusLEDService";
 	final private int SAMPLING_INTERVAL = 3;
+	private final IBinder mBinder = new CPUStatusLEDBinder();
+	private CpuMon mCpuMon;
 
 	/**
 	 *
@@ -53,19 +56,9 @@ public class CPUStatusLEDService extends Service
             return CPUStatusLEDService.this;
         }
     }
-	private final IBinder mBinder = new CPUStatusLEDBinder();
-
-	private CpuMon mCpuMon;
-	private CPUStatusLED gui;
-
-	public CPUStatusLED getGui()
-	{
-		return gui;
-	}
 
 	public void setGui(CPUStatusLED gui)
 	{
-		this.gui = gui;
 		mCpuMon.linkDisplay(gui);
 	}
 
@@ -82,7 +75,6 @@ public class CPUStatusLEDService extends Service
 	};
 
 	static myPhoneStateListener signalListener;
-	static TelephonyManager telManager;
 	/**
 	 * Framework method called when the service is first created.
 	 */
@@ -90,8 +82,8 @@ public class CPUStatusLEDService extends Service
     public void onCreate() {
 		Log.i(TAG, "onCreate");
 
-		if(gui==null) stopSelf();
-		mCpuMon = new CpuMon(telManager);
+		//if(gui==null) stopSelf();
+		mCpuMon = new CpuMon((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
 		mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
 		//monitor signal strength
 		signalListener= new myPhoneStateListener();
@@ -104,6 +96,7 @@ public class CPUStatusLEDService extends Service
     public void onDestroy() {
 		Log.i(TAG, "onDestroy");
 		mHandler.removeCallbacks(mRefresh);
+		this.stopSelf();
 	}
 
 	/**
@@ -126,10 +119,10 @@ public class CPUStatusLEDService extends Service
 		return true;
 	}
 
-	public static void setTelephonyManager(TelephonyManager systemService)
-	{
-		telManager=systemService;
-
-	}
+//	public static void setTelephonyManager(TelephonyManager systemService)
+//	{
+//		telManager=systemService;
+//
+//	}
 
 }

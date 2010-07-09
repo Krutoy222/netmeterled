@@ -7,25 +7,25 @@ import android.util.Log;
 
 public class myServiceConnection implements ServiceConnection
 {
-	CPUStatusLEDService mService;
+	public CPUStatusLEDService mService;
 	CPUStatusLED activity;
 
 	myServiceConnection(CPUStatusLED activity)
 	{
 		this.activity=activity;
-
 	}
         public void onServiceConnected(ComponentName className, IBinder service) {
-
+        	//Log.i("CPUStatusLED","service connected, gui attached.");
         	// Get reference to (local) service from binder
             mService = ((CPUStatusLEDService.CPUStatusLEDBinder)service).getService();
-            Log.i("myServiceConnection", "service connected, gui attached.");
             // link up the display elements to be updated by the service
             mService.setGui(activity);
         }
 
-        public void onServiceDisconnected(ComponentName className) {
+        public void onServiceDisconnected(ComponentName className)
+        {
+        	//Log.i("CPUStatusLED","myServiceConnection.onServiceDisconnected()");
             mService = null;
-            Log.i("myServiceConnection", "service disconnected - should never happen");
+            Log.i("CPUStatusLED", "service disconnected - should never happen");
         }
 }
