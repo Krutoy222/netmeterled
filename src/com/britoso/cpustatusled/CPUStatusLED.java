@@ -24,7 +24,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -69,7 +68,7 @@ public class CPUStatusLED extends Activity {
         lib=new ChargingLEDLib(this);
         //Log.i(TAG, "onCreate");
         startService(new Intent(this, CPUStatusLEDService.class));
-        CPUStatusLEDService.setTelephonyManager((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
+        //CPUStatusLEDService.setTelephonyManager((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
 
         //Log.i(TAG, "checking intent for parameters");
         if(this.getIntent()!=null && this.getIntent().getExtras()!=null && this.getIntent().getExtras().getBoolean("start_minimized"))
@@ -116,10 +115,13 @@ public class CPUStatusLED extends Activity {
     		startActivity(myIntent);
     		break;
     	case R.id.stop:
-    		stopService(new Intent(this, CPUStatusLEDService.class));
     		lib.turnOffAllLEDs();
+    		stopService(new Intent(this, CPUStatusLEDService.class));
+    		mConnection.mService.stopSelf();
+    		mConnection.mService.stopService(getIntent());
     		finish();
-    		System.exit(RESULT_OK);
+    		if(mConnection.mService!=null)
+    			System.exit(RESULT_OK);//service just wont die otherwise!!!
     		break;
     	}
     	return true;
@@ -178,8 +180,10 @@ public class CPUStatusLED extends Activity {
 		       .setCancelable(false)
 		       .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
+		        	    //mConnection.mService.stopSelf();
+		        	    mConnection.mService.stopService(getIntent());
 		                CPUStatusLED.this.finish();
-		                System.exit(0);
+		                //System.exit(0);
 		           }
 		       })
 		       .setNegativeButton("Continue", new DialogInterface.OnClickListener() {
