@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CPUStatusLED</string>
-    <string name="app_version">v0.83b</string>
+    <string name="app_version">v0.90</string>
     <string name="help_title">CPUStatusLED Help</string>
     <string name="disable_leds">Toggle Enable/Disable LEDs</string>
+    <string name="str_settings">Preferences</string>
     <string name="menu_stop">Exit</string>
     <string name="menu_help">Help</string>
     <string name="disp_cpu">CPU load</string>
@@ -12,6 +13,10 @@
     <string name="disp_name">Name</string>
     <string name="disp_user">apps</string>
     <string name="disp_system">kernel</string>
+    <string name="level1">Lev1</string>
+    <string name="level2">Lev2</string>
+    <string name="level3">Lev3</string>
+    <string name="level4">Lev4</string>
     <string name="help_text">
 	<big><b>\nAPPNAME APPVERSION</b>
     \nCPU status monitor using the charging LEDs

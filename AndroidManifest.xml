@@ -10,7 +10,7 @@
 			</intent-filter>
 		</receiver>
 		<service android:name=".CPUStatusLEDService" />
-		<activity android:name=".CPUStatusLED" android:label="@string/app_name">
+		<activity android:name=".CPUStatusLED" android:label="@string/app_name"  android:configChanges="orientation">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
