@@ -162,6 +162,7 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		SeekBar t1 = (SeekBar) dialogView.findViewById(R.id.seekbar1);
 		t1.setOnSeekBarChangeListener(this);
 		t1.setMax(100);
+		t1.setKeyProgressIncrement(1);
 		t1.setProgress(ChargingLEDLib.thresholds[0]);
 		
 		Spinner s1 = (Spinner) dialogView.findViewById(R.id.color1);
@@ -184,6 +185,7 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		SeekBar t2 = (SeekBar) dialogView.findViewById(R.id.seekbar2);
 		t2.setOnSeekBarChangeListener(this);
 		t2.setMax(100);
+		t2.setKeyProgressIncrement(1);		
 		t2.setProgress(ChargingLEDLib.thresholds[1]);
 		
 		Spinner s2 = (Spinner) dialogView.findViewById(R.id.color2);
@@ -204,6 +206,7 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		SeekBar t3 = (SeekBar) dialogView.findViewById(R.id.seekbar3);
 		t3.setOnSeekBarChangeListener(this);
 		t3.setMax(100);
+		t3.setKeyProgressIncrement(1);		
 		t3.setProgress(ChargingLEDLib.thresholds[2]);
 		
 		Spinner s3 = (Spinner) dialogView.findViewById(R.id.color3);
@@ -224,6 +227,7 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		SeekBar t4 = (SeekBar) dialogView.findViewById(R.id.seekbar4);
 		t4.setOnSeekBarChangeListener(this);
 		t4.setMax(100);
+		t4.setKeyProgressIncrement(1);		
 		t4.setProgress(ChargingLEDLib.thresholds[3]);
 		
 		Spinner s4 = (Spinner) dialogView.findViewById(R.id.color4);
