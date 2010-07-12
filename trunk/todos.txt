@@ -1,23 +1,5 @@
 Todos:
--move each phone model settings to a preference file
--save default color brackets and color order for each phone model
 -use 'busybox top -b -n1' for phones that have root.
-on startup- check if we recognize the model, else ask 'launch led detection?'
 
 menu
-	-set color brackets
-	-set color order
 	-launch on startup (checkbox)
-	-led detection
-		-search for 'brightness' files under /sys/devices/
-		-display the result,
-		-check the permission of each file.
-		-if 'su' exists and is required use it
-		-if 'su' does not exist and is required 'dialog: sorry root is needed, trimming results'. remove items that need root from results
-		-test each remaining result.
-			-turn on
-			-ask
-			-turn off
-		-save in preference named 'Model'
-		-display results (table 3xn, led name, location, root)
-

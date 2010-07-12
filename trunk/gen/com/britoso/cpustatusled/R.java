@@ -14,11 +14,37 @@ public final class R {
         public static final int icon=0x7f020000;
     }
     public static final class id {
-        public static final int disableleds=0x7f06000a;
-        public static final int help=0x7f06000c;
+        public static final int buttoncancel=0x7f060023;
+        public static final int buttonok=0x7f060022;
+        public static final int color1=0x7f060012;
+        public static final int color2=0x7f060017;
+        public static final int color3=0x7f06001c;
+        public static final int color4=0x7f060021;
+        public static final int disableleds=0x7f060025;
+        public static final int help=0x7f060027;
         public static final int helptext=0x7f060000;
+        public static final int label1=0x7f06000f;
+        public static final int label2=0x7f060014;
+        public static final int label3=0x7f060019;
+        public static final int label4=0x7f06001e;
+        public static final int layout_root=0x7f06000a;
+        public static final int menu_settings=0x7f060024;
+        public static final int row1=0x7f06000e;
+        public static final int row2=0x7f060013;
+        public static final int row3=0x7f060018;
+        public static final int row4=0x7f06001d;
         public static final int scrollview=0x7f060009;
-        public static final int stop=0x7f06000b;
+        public static final int scrollview1=0x7f06000b;
+        public static final int scrollview2=0x7f06000c;
+        public static final int seekbar1 =0x7f060010;
+        public static final int seekbar2 =0x7f060015;
+        public static final int seekbar3 =0x7f06001a;
+        public static final int seekbar4 =0x7f06001f;
+        public static final int stop=0x7f060026;
+        public static final int threshold1=0x7f060011;
+        public static final int threshold2=0x7f060016;
+        public static final int threshold3=0x7f06001b;
+        public static final int threshold4=0x7f060020;
         public static final int top_process=0x7f060008;
         public static final int top_processes_row=0x7f060007;
         public static final int widget0=0x7f060001;
@@ -27,10 +53,12 @@ public final class R {
         public static final int widget30=0x7f060005;
         public static final int widget31=0x7f060006;
         public static final int widget32=0x7f060003;
+        public static final int widget35=0x7f06000d;
     }
     public static final class layout {
         public static final int help=0x7f030000;
         public static final int layout=0x7f030001;
+        public static final int settings=0x7f030002;
     }
     public static final class menu {
         public static final int main_menu=0x7f050000;
@@ -39,15 +67,20 @@ public final class R {
         public static final int app_name=0x7f040000;
         public static final int app_version=0x7f040001;
         public static final int disable_leds=0x7f040003;
-        public static final int disp_battery=0x7f040008;
-        public static final int disp_cpu=0x7f040006;
-        public static final int disp_cpu_type=0x7f040007;
-        public static final int disp_name=0x7f040009;
-        public static final int disp_system=0x7f04000b;
-        public static final int disp_user=0x7f04000a;
-        public static final int help_text=0x7f04000c;
+        public static final int disp_battery=0x7f040009;
+        public static final int disp_cpu=0x7f040007;
+        public static final int disp_cpu_type=0x7f040008;
+        public static final int disp_name=0x7f04000a;
+        public static final int disp_system=0x7f04000c;
+        public static final int disp_user=0x7f04000b;
+        public static final int help_text=0x7f040011;
         public static final int help_title=0x7f040002;
-        public static final int menu_help=0x7f040005;
-        public static final int menu_stop=0x7f040004;
+        public static final int level1=0x7f04000d;
+        public static final int level2=0x7f04000e;
+        public static final int level3=0x7f04000f;
+        public static final int level4=0x7f040010;
+        public static final int menu_help=0x7f040006;
+        public static final int menu_stop=0x7f040005;
+        public static final int str_settings=0x7f040004;
     }
 }
