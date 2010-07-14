@@ -8,7 +8,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.britoso.cpustatusled.CPUStatusLED;
+import com.britoso.cpustatusled.CPUStatusLEDActivity;
 import com.britoso.cpustatusled.utilclasses.ShellCommand.CommandResult;
 
 /**
@@ -36,7 +36,7 @@ public class ChargingLEDLib
 	// keep the console used to issue commands open. more efficient
 	private static Process console = null;
 	private static DataOutputStream os = null;
-	static CPUStatusLED gui1;
+	static CPUStatusLEDActivity gui1;
 	static int lastThreshhold = 0;
 	public static boolean noLEDs = false;
 	
@@ -282,7 +282,7 @@ public class ChargingLEDLib
 	 */
 	public void setLEDColor(int totalCPUInt)
 	{
-		if (CPUStatusLED.disabledLEDs || ChargingLEDLib.noLEDs) return;//dont do anything
+		if (CPUStatusLEDActivity.disabledLEDs || ChargingLEDLib.noLEDs) return;//dont do anything
 
 		if (DEBUG) Log.d(TAG, "CPU=" + totalCPUInt);
 
@@ -448,5 +448,29 @@ public class ChargingLEDLib
 		turnOffAllLEDs();
 		//prefsRead=true;
 	}
+	
+	/**
+	 * Save to sharedPrerefences: shellOpenCommand, thresholds, colorOrder,
+	 * ledpaths, availableLEDs
+	 */
+	public void writePrefs()
+	{
+		//SharedPreferences settings = getPreferences(MODE_PRIVATE );
+		SharedPreferences settings =PreferenceManager.getDefaultSharedPreferences(context);
+		SharedPreferences.Editor e = settings.edit();
+
+		e.putString("shell", ChargingLEDLib.shellOpenCommand);
+		for (int i = 0; i < colorOrder.length; i++)
+		{
+			e.putString("color" + i, colorOrder[i]);
+			e.putInt("threshold" + i, ChargingLEDLib.thresholds[i]);
+			e.putString("ledpath" + i, ChargingLEDLib.ledpaths[i]);
+		}
+		for (int i = 0; i < ChargingLEDLib.availableLEDs.length; i++)
+		{
+			e.putString("availableLED" + i, ChargingLEDLib.availableLEDs[i]);
+		}
+		e.commit();
+	}	
 
 }

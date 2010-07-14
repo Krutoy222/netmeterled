@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
-import com.britoso.cpustatusled.utilclasses.ChargingLEDLib;
-
 /**
  *
  * @author britoso
@@ -17,9 +15,6 @@ public class BootCompletedReciever extends BroadcastReceiver
 	@Override
 	public void onReceive(Context context, Intent intentin)
 	{
-		ChargingLEDLib lib = new ChargingLEDLib();
-		ChargingLEDLib.context=context;//set the context
-		lib.readPrefs();
 		//start the service.
 		Intent serviceIntent = new Intent();
 		serviceIntent.setAction("com.britoso.cpustatusled.CPUStatusLEDService");

@@ -22,7 +22,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.britoso.cpustatusled.CPUStatusLED;
+import com.britoso.cpustatusled.CPUStatusLEDActivity;
 
 public class CpuMon
 {
@@ -36,7 +36,7 @@ public class CpuMon
 	static ArrayList<Integer> systemHistory = new ArrayList<Integer>(MAX_SIZE);
 	static ArrayList<Integer> signalHistory = new ArrayList<Integer>(MAX_SIZE);
 	
-	private CPUStatusLED mDisplay;
+	private CPUStatusLEDActivity mDisplay;
 	
 	ChargingLEDLib lib = new ChargingLEDLib();
 	public static TelephonyManager telManager;//static to keep it alive
@@ -47,7 +47,7 @@ public class CpuMon
 		readStats();
 	}
 	
-	public void linkDisplay(CPUStatusLED display)
+	public void linkDisplay(CPUStatusLEDActivity display)
 	{
 		mDisplay = display;
 		readStats();
@@ -67,7 +67,7 @@ public class CpuMon
 		}
 		catch (FileNotFoundException e)
 		{
-			Log.e("MonNet", "Could not read " + STAT_FILE);
+			Log.e("CPUStatusLED", "Could not read " + STAT_FILE);
 			return false;
 		}
 		BufferedReader in = new BufferedReader(fstream, 500);
@@ -85,7 +85,7 @@ public class CpuMon
 		}
 		catch (IOException e)
 		{
-			Log.e("MonNet", e.toString());
+			Log.e("CPUStatusLED", e.toString());
 		}
 		return false;
 	}

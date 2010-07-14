@@ -17,27 +17,25 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.britoso.cpustatusled.utilclasses.ChargingLEDLib;
 
@@ -50,7 +48,7 @@ import com.britoso.cpustatusled.utilclasses.ChargingLEDLib;
  * directly update the display when it generates new data, references of the
  * display elements are passed to the service after binding.
  */
-public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /* seekbar */, OnClickListener/* buttons */
+public class CPUStatusLEDActivity extends Activity implements OnSeekBarChangeListener /* seekbar */, OnClickListener/* buttons */
 {
 	private String TAG;
 	View chart = null;
@@ -111,7 +109,7 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		switch (item.getItemId())
 		{
 			case R.id.disableleds:
-				CPUStatusLED.disabledLEDs = !CPUStatusLED.disabledLEDs;
+				CPUStatusLEDActivity.disabledLEDs = !CPUStatusLEDActivity.disabledLEDs;
 				break;
 			case R.id.help:
 				Intent myIntent = new Intent();
@@ -297,7 +295,7 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 					{
 						//mConnection.mService.stopSelf();
 						mConnection.mService.stopService(getIntent());
-						CPUStatusLED.this.finish();
+						CPUStatusLEDActivity.this.finish();
 						//System.exit(0);
 					}
 				}).setNegativeButton("Continue", 
@@ -407,34 +405,9 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 				sb3.getProgress(),
 				sb4.getProgress()
 		};
-		writePrefs();
+		lib.writePrefs();
 		Toast.makeText(this, "Preferences saved.", Toast.LENGTH_SHORT).show();
 		Log.i(TAG, "Saved prefs");
-	}
-
-	/**
-	 * Save to sharedPrerefences: shellOpenCommand, thresholds, colorOrder,
-	 * ledpaths, availableLEDs
-	 */
-	private void writePrefs()
-	{
-		String colorOrder[] = lib.getColorOrder();
-		//SharedPreferences settings = getPreferences(MODE_PRIVATE );
-		SharedPreferences settings =PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
-		SharedPreferences.Editor e = settings.edit();
-
-		e.putString("shell", ChargingLEDLib.shellOpenCommand);
-		for (int i = 0; i < colorOrder.length; i++)
-		{
-			e.putString("color" + i, colorOrder[i]);
-			e.putInt("threshold" + i, ChargingLEDLib.thresholds[i]);
-			e.putString("ledpath" + i, ChargingLEDLib.ledpaths[i]);
-		}
-		for (int i = 0; i < ChargingLEDLib.availableLEDs.length; i++)
-		{
-			e.putString("availableLED" + i, ChargingLEDLib.availableLEDs[i]);
-		}
-		e.commit();
 	}
 
 	//needed otherwise the activity/dialog is destroyed on rotate.
