@@ -19,6 +19,7 @@ import android.os.IBinder;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.britoso.cpustatusled.utilclasses.ChargingLEDLib;
 import com.britoso.cpustatusled.utilclasses.CpuMon;
 import com.britoso.cpustatusled.utilclasses.myPhoneStateListener;
 
@@ -54,7 +55,7 @@ public class CPUStatusLEDService extends Service
 		}
 	}
 	
-	public void setGui(CPUStatusLED gui)
+	public void setGui(CPUStatusLEDActivity gui)
 	{
 		mCpuMon.linkDisplay(gui);
 	}
@@ -67,9 +68,8 @@ public class CPUStatusLEDService extends Service
 		public void run()
 		{
 			//this reads the /proc/stats file
-			mCpuMon.readStats();
+			mCpuMon.readStats();//calls updateStats()
 			mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
-			
 		}
 	};
 	
@@ -82,9 +82,12 @@ public class CPUStatusLEDService extends Service
 	public void onCreate()
 	{
 		Log.i(TAG, "onCreate");
-		
+		ChargingLEDLib lib = new ChargingLEDLib();
+		ChargingLEDLib.context=this.getApplicationContext();//set the context
+		lib.readPrefs();		
 		//if(gui==null) stopSelf();
 		mCpuMon = new CpuMon((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
+		//thread that reads cpu stats
 		mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
 		//monitor signal strength
 		signalListener = new myPhoneStateListener();

@@ -8,9 +8,9 @@ import android.util.Log;
 public class myServiceConnection implements ServiceConnection
 {
 	public CPUStatusLEDService mService;
-	CPUStatusLED activity;
+	CPUStatusLEDActivity activity;
 	
-	myServiceConnection(CPUStatusLED activity)
+	myServiceConnection(CPUStatusLEDActivity activity)
 	{
 		this.activity = activity;
 	}
