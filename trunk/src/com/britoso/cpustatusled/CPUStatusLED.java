@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -41,9 +42,9 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import com.britoso.cpustatusled.utilclasses.ChargingLEDLib;
 
 /**
- * 
+ *
  * Main controller activity for CPUStatusLED application.
- * 
+ *
  * Creates the display (table plus graph view) and connects to the
  * CPUStatusLEDService, starting it if necessary. Since the service will
  * directly update the display when it generates new data, references of the
@@ -54,16 +55,15 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 	private String TAG;
 	View chart = null;
 	public static boolean disabledLEDs = false;
-	public static boolean noLEDs = false;
 	CPUStatusChart cpuStatusChart;
 	ChargingLEDLib lib;
-	
+
 	/**
 	 * Service connection callback object used to establish communication with
 	 * the service after binding to it.
 	 */
 	private myServiceConnection mConnection;
-	
+
 	/**
 	 * Framework method called when the activity is first created.
 	 * */
@@ -72,31 +72,25 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 	{
 		super.onCreate(savedInstanceState);
 		TAG = this.getResources().getText(R.string.app_name).toString();
-		lib = new ChargingLEDLib(this);
-		readPrefs();
-		//Log.i(TAG, "onCreate");
-		startService(new Intent(this, CPUStatusLEDService.class));
-		//CPUStatusLEDService.setTelephonyManager((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
-		
-		//Log.i(TAG, "checking intent for parameters");
-		if (this.getIntent() != null && this.getIntent().getExtras() != null && this.getIntent().getExtras().getBoolean("start_minimized"))
-		{
-			this.getIntent().getExtras().remove("start_minimized");
-			this.moveTaskToBack(true);
-			Toast.makeText(this, TAG + " sent to the background.", Toast.LENGTH_SHORT).show();
-			return;
-		}
-		
+		lib = new ChargingLEDLib();
+		lib.readPrefs();
 		setContentView(R.layout.layout);
-		if (cpuStatusChart == null) cpuStatusChart = new CPUStatusChart();
-		//chart= cpuStatusChart.createView(this);
-		//chart.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		//ScrollView sv= (ScrollView)this.findViewById(R.id.scrollview);
-		//sv.addView(chart);
+		startService(new Intent(this, CPUStatusLEDService.class));
 		mConnection = new myServiceConnection(this);
-		
+		if (cpuStatusChart == null) cpuStatusChart = new CPUStatusChart();
+
+		String colors[]= lib.getColorOrder();
+		if (colors==null ||colors.length==0)
+		{ 
+			showExitContinueAlert("No LEDs were detected. Do you want to exit? The app will run without LEDs too.");//exit or continue
+		}
+		if(lib.canSU==false && ChargingLEDLib.shellOpenCommand.equals(ChargingLEDLib.ROOT_SHELL))
+		{
+			showExitContinueAlert("SuperUser (su) is needed and was not found. Do you want to exit? The app will run without LEDs too.");
+		}
+		//Log.i(TAG, "onCreate");
 	}
-	
+
 	/**
 	 * Framework method to create menu structure.
 	 */
@@ -107,7 +101,7 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		inflater.inflate(R.menu.main_menu, menu);
 		return super.onCreateOptionsMenu(menu);
 	}
-	
+
 	/**
 	 * Framework method called when activity menu option is selected.
 	 */
@@ -145,26 +139,26 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		}
 		return true;
 	}
-	
+
 	private View dialogView;
 	private AlertDialog alertDialog;
-	
+
 	private void setListenersAndValues(AlertDialog alertDialog)
 	{
 		final String [] colorOrder = lib.getColorOrder();
 		Button ok = (Button) (dialogView.findViewById(R.id.buttonok));
 		ok.setOnClickListener(this);
-		
+
 		Button cancel = (Button) (dialogView.findViewById(R.id.buttoncancel));
 		cancel.setOnClickListener(this);
-		
+
 		//row1
 		SeekBar t1 = (SeekBar) dialogView.findViewById(R.id.seekbar1);
 		t1.setOnSeekBarChangeListener(this);
 		t1.setMax(100);
 		t1.setKeyProgressIncrement(1);
 		t1.setProgress(ChargingLEDLib.thresholds[0]);
-		
+
 		Spinner s1 = (Spinner) dialogView.findViewById(R.id.color1);
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getApplicationContext(), android.R.layout.simple_spinner_item,
 				ChargingLEDLib.availableLEDs);
@@ -180,14 +174,14 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		}
 		TextView tv1 = (TextView) dialogView.findViewById(R.id.threshold1);
 		tv1.setText("" + t1.getProgress());
-		
+
 		//row2
 		SeekBar t2 = (SeekBar) dialogView.findViewById(R.id.seekbar2);
 		t2.setOnSeekBarChangeListener(this);
 		t2.setMax(100);
-		t2.setKeyProgressIncrement(1);		
+		t2.setKeyProgressIncrement(1);
 		t2.setProgress(ChargingLEDLib.thresholds[1]);
-		
+
 		Spinner s2 = (Spinner) dialogView.findViewById(R.id.color2);
 		s2.setAdapter(adapter);
 		//look for the nth color and select it.
@@ -201,14 +195,14 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		}
 		TextView tv2 = (TextView) dialogView.findViewById(R.id.threshold2);
 		tv2.setText("" + t2.getProgress());
-		
+
 		//row3
 		SeekBar t3 = (SeekBar) dialogView.findViewById(R.id.seekbar3);
 		t3.setOnSeekBarChangeListener(this);
 		t3.setMax(100);
-		t3.setKeyProgressIncrement(1);		
+		t3.setKeyProgressIncrement(1);
 		t3.setProgress(ChargingLEDLib.thresholds[2]);
-		
+
 		Spinner s3 = (Spinner) dialogView.findViewById(R.id.color3);
 		s3.setAdapter(adapter);
 		//look for the nth color and select it.
@@ -222,14 +216,14 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		}
 		TextView tv3 = (TextView) dialogView.findViewById(R.id.threshold3);
 		tv3.setText("" + t3.getProgress());
-		
+
 		//row4
 		SeekBar t4 = (SeekBar) dialogView.findViewById(R.id.seekbar4);
 		t4.setOnSeekBarChangeListener(this);
 		t4.setMax(100);
-		t4.setKeyProgressIncrement(1);		
+		t4.setKeyProgressIncrement(1);
 		t4.setProgress(ChargingLEDLib.thresholds[3]);
-		
+
 		Spinner s4 = (Spinner) dialogView.findViewById(R.id.color4);
 		s4.setAdapter(adapter);
 		//look for the nth color and select it.
@@ -244,10 +238,10 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		TextView tv4 = (TextView) dialogView.findViewById(R.id.threshold4);
 		tv4.setText("" + t4.getProgress());
 	}
-	
+
 	/**
 	 * Framework method called when activity becomes the foreground activity.
-	 * 
+	 *
 	 * onResume/onPause implement the most narrow window of activity life-cycle
 	 * during which the activity is in focus and foreground.
 	 */
@@ -256,9 +250,9 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 	{
 		super.onResume();
 		bindService(new Intent(this, CPUStatusLEDService.class), mConnection, Context.BIND_AUTO_CREATE);
-		
+
 	}
-	
+
 	/**
 	 * Framework method called when activity looses foreground position
 	 */
@@ -268,13 +262,13 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		super.onPause();
 		unbindService(mConnection);
 	}
-	
+
 	public void setCPUValues(String value)
 	{
 		TextView tv = (TextView) this.findViewById(R.id.widget31);
 		tv.setText(value);
 	}
-	
+
 	public void updateGraph(ArrayList<Integer> userHistory, ArrayList<Integer> systemHistory, ArrayList<Integer> signalHistory, ArrayList<String> topProcesses)
 	{
 		if (topProcesses != null && topProcesses.size() >= 3)
@@ -285,18 +279,18 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		{
 			((TextView) this.findViewById(R.id.top_process)).setText("");
 		}
-		
+
 		chart = cpuStatusChart.createView(this, userHistory, systemHistory, signalHistory);
 		chart.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		ScrollView sv = (ScrollView) this.findViewById(R.id.scrollview);
 		sv.removeAllViews();
 		sv.addView(chart);
 	}
-	
-	public void showNoLEDsAlert()
+
+	public void showExitContinueAlert(String msg)
 	{
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("No LEDs were detected. Do you want to exit? The app will run without LEDs too.").setCancelable(false).setPositiveButton("Exit",
+		builder.setMessage(msg).setCancelable(false).setPositiveButton("Exit",
 				new DialogInterface.OnClickListener()
 				{
 					public void onClick(DialogInterface dialog, int id)
@@ -306,17 +300,18 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 						CPUStatusLED.this.finish();
 						//System.exit(0);
 					}
-				}).setNegativeButton("Continue", new DialogInterface.OnClickListener()
-		{
-			public void onClick(DialogInterface dialog, int id)
-			{
-				dialog.cancel();
-				CPUStatusLED.noLEDs = true;
-			}
-		});
+				}).setNegativeButton("Continue", 
+						new DialogInterface.OnClickListener()
+							{
+								public void onClick(DialogInterface dialog, int id)
+								{
+									dialog.cancel();
+									ChargingLEDLib.noLEDs = true;
+								}
+							});
 		builder.create().show();
 	}
-	
+
 	public void onProgressChanged(SeekBar view, int progress, boolean fromuser)
 	{
 		if (!fromuser) return;
@@ -341,9 +336,9 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 			((TextView) dialogView.findViewById(R.id.threshold4)).setText("" + progress);
 			adjustSeekBars();
 		}
-		
+
 	}
-	
+
 	private void adjustSeekBars()
 	{
 		//1->4
@@ -363,18 +358,18 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 			((TextView) dialogView.findViewById(R.id.threshold4)).setText("" + ((SeekBar) dialogView.findViewById(R.id.seekbar4)).getProgress());
 		}
 	}
-	
+
 	public void onStartTrackingTouch(SeekBar arg0)
 	{
 	}
-	
+
 	public void onStopTrackingTouch(SeekBar arg0)
 	{
 	}
-	
+
 	public void onClick(View view)
 	{
-		//Log.i(TAG,"onClick");		
+		//Log.i(TAG,"onClick");
 		if (view.getId() == R.id.buttonok)
 		{
 			savePreferences();
@@ -384,9 +379,9 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		{
 			alertDialog.dismiss();
 		}
-		
+
 	}
-	
+
 	private void savePreferences()
 	{
 		Spinner s1 = (Spinner) dialogView.findViewById(R.id.color1);
@@ -413,12 +408,10 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 				sb4.getProgress()
 		};
 		writePrefs();
-		Toast.makeText(this, "Preferences saved.", Toast.LENGTH_SHORT).show();		
+		Toast.makeText(this, "Preferences saved.", Toast.LENGTH_SHORT).show();
 		Log.i(TAG, "Saved prefs");
 	}
-	
-	public static final String PREFS_NAME = "CPUStatusLED.prefs";
-	
+
 	/**
 	 * Save to sharedPrerefences: shellOpenCommand, thresholds, colorOrder,
 	 * ledpaths, availableLEDs
@@ -426,9 +419,10 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 	private void writePrefs()
 	{
 		String colorOrder[] = lib.getColorOrder();
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		//SharedPreferences settings = getPreferences(MODE_PRIVATE );
+		SharedPreferences settings =PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
 		SharedPreferences.Editor e = settings.edit();
-		
+
 		e.putString("shell", ChargingLEDLib.shellOpenCommand);
 		for (int i = 0; i < colorOrder.length; i++)
 		{
@@ -442,70 +436,11 @@ public class CPUStatusLED extends Activity implements OnSeekBarChangeListener /*
 		}
 		e.commit();
 	}
-	
-	private void readPrefs()
-	{
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		//read shellOpenCommand, thresholds, colorOrder, ledpaths, availableLEDs
-		String shell = settings.getString("shell", null);
-		if (shell != null)
-		{
-			ChargingLEDLib.shellOpenCommand = shell;
-			if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: shell=" + shell);
-		}
-		else
-		{
-			lib.initialize();
-			return;//prefs dont exist, stop reading.
-		}
-		
-		int i = 0;
-		int availLEDCount = 0;
-		String colorOrder[] = new String[ChargingLEDLib.MAX_SUPPORTED_COLORS];
-		String [] tempLEDColor = new String[10];
-		//try to read 4 values
-		while (i < ChargingLEDLib.MAX_SUPPORTED_COLORS)
-		{
-			String color, ledpath;
-			int threshold;
-			color = settings.getString("color" + i, null);
-			if (color != null) colorOrder[i] = color;
-			
-			threshold = settings.getInt("threshold" + i, -1);
-			if (threshold >= 0) ChargingLEDLib.thresholds[i] = threshold;
-			
-			ledpath = settings.getString("ledpath" + i, null);
-			if (ledpath != null) ChargingLEDLib.ledpaths[i] = ledpath;
-			
-			String availLED = settings.getString("availableLED" + i, null);
-			if (availLED != null)
-			{
-				tempLEDColor[availLEDCount++] = availLED;
-			}
-			
-			i++;
-		}
-		lib.setColorOrder(colorOrder);
-		if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: colorOrder=" + colorOrder[0] + "  " + colorOrder[1] + "  " + colorOrder[2] + "  " + colorOrder[3]);
-		if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: ledpaths=" + ChargingLEDLib.ledpaths[0] + "  " + ChargingLEDLib.ledpaths[1] + "  "
-				+ ChargingLEDLib.ledpaths[2] + "  " + ChargingLEDLib.ledpaths[3]);
-		if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: thresholds=" + ChargingLEDLib.thresholds[0] + "  " + ChargingLEDLib.thresholds[1] + "  "
-				+ ChargingLEDLib.thresholds[2] + "  " + ChargingLEDLib.thresholds[3]);
-		ChargingLEDLib.availableLEDs = new String[availLEDCount];
-		for (int j = 0; j < availLEDCount; j++)
-		{
-			ChargingLEDLib.availableLEDs[j] = tempLEDColor[j];
-			if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: availableLED=" + ChargingLEDLib.availableLEDs[j]);
-		}
-		
-		lib.turnOffAllLEDs();
-		
-	}
-	
+
 	//needed otherwise the activity/dialog is destroyed on rotate.
 	public void onConfigurationChanged(Configuration newConfig)
 	{
 		super.onConfigurationChanged(newConfig);
 	}
-	
+
 }
