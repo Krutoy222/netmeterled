@@ -124,10 +124,4 @@ public class CPUStatusLEDService extends Service
 		return true;
 	}
 	
-	//	public static void setTelephonyManager(TelephonyManager systemService)
-	//	{
-	//		telManager=systemService;
-	//
-	//	}
-	
 }

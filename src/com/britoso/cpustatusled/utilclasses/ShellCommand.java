@@ -25,7 +25,7 @@ import android.util.Log;
 
 public class ShellCommand
 {
-	private static final String TAG = "ShellCommand.java";
+	private static final String TAG = "CPUStatusLED";
 	private Boolean can_su;
 	
 	public SH sh;

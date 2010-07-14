@@ -3,6 +3,9 @@ package com.britoso.cpustatusled.utilclasses;
 import java.io.DataOutputStream;
 import java.io.File;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.britoso.cpustatusled.CPUStatusLED;
@@ -10,9 +13,9 @@ import com.britoso.cpustatusled.utilclasses.ShellCommand.CommandResult;
 
 /**
  * This library offers methods to set the charging LED color.
- * 
+ *
  * @author britoso
- * 
+ *
  *         color combinations: green+blue= sky blue blue+amber= pink
  */
 public class ChargingLEDLib
@@ -21,19 +24,23 @@ public class ChargingLEDLib
 	public final static int MAX_SUPPORTED_COLORS = 4;
 	private final static String ECHO_0 = "echo 0 > ";
 	private final static String ECHO_1 = "echo 1 > ";
-	private final static String ROOT_SHELL = "su";
+	public final static String ROOT_SHELL = "su";
 	private final static String NORMAL_SHELL = "sh";
 	private static final String COLOR_BLUE = "blue", COLOR_GREEN = "green", COLOR_AMBER = "amber", COLOR_RED = "red";
 	private final static String TAG = "CPUStatusLED";
-	
+	public static final String PREFS_NAME = "CPUStatusLED.prefs";
+
+
 	//reused
-	public final static boolean DEBUG = false;
+	public final static boolean DEBUG = true;
 	// keep the console used to issue commands open. more efficient
 	private static Process console = null;
 	private static DataOutputStream os = null;
-	static CPUStatusLED gui;
+	static CPUStatusLED gui1;
 	static int lastThreshhold = 0;
+	public static boolean noLEDs = false;
 	
+
 	//prefs
 	public static int [] thresholds =
 	{
@@ -46,25 +53,20 @@ public class ChargingLEDLib
 	private static String colorOrder[] = new String[MAX_SUPPORTED_COLORS];
 	public static String ledpaths[] = new String[MAX_SUPPORTED_COLORS];
 	public static String availableLEDs[];//used to populate the dropdown/spinner
-	
-	public ChargingLEDLib(CPUStatusLED gui)
-	{
-		ChargingLEDLib.gui = gui;
-	}
-	
+
 	public ChargingLEDLib()
 	{
 	}
-	
-	public void initialize()
+
+	private void initialize()
 	{
 		Log.i(TAG, "Phone Model=" + android.os.Build.MODEL);
-		
+
 		//leds
 		String ledpathsononeline = detectLEDs();
 		int ledcount = 0;
 		ledpaths = ledpathsononeline.trim().split("\n");
-		
+
 		String temp[] = new String[20];//large enough
 		for (int i = 0; i < ledpaths.length; i++)
 		{
@@ -81,20 +83,20 @@ public class ChargingLEDLib
 		availableLEDs = new String[ledcount];
 		for (int i = 0; i < ledcount; i++)
 			availableLEDs[i] = temp[i];
-		
+
 		Log.i(TAG, "Found " + ledcount + " LEDs!");
-		
+
 		//set colorOrder;
 		setDefaultColorOrder(ledcount, ledpathsononeline);
-		
+
 		if (colorOrder[0] == null)
-		{
-			if (gui != null) gui.showNoLEDsAlert();//exit or continue
+		{ 
+			ChargingLEDLib.noLEDs=true;
 		}
-		
-		//uses sets ledpaths based on the colorOrder 
+
+		//uses sets ledpaths based on the colorOrder
 		assignPathsBasedOnColorOrder();
-		
+
 		if (ledpaths.length > 0)
 		{
 			if (isWriteable(ledpaths[0]))
@@ -103,13 +105,20 @@ public class ChargingLEDLib
 			}
 			else
 			{
-				shellOpenCommand = ROOT_SHELL;
+				shellOpenCommand = ROOT_SHELL;			
 			}
 		}
 		Log.i(TAG, "Shell = " + shellOpenCommand);
-		
+		if(shellOpenCommand.equals(ROOT_SHELL) && canSU==false)
+		{
+			ShellCommand sc = new ShellCommand();
+			canSU=sc.canSU();
+		}
+
 	}
 	
+	public boolean canSU=false;//used to warn the user
+
 	private void setDefaultColorOrder(int ledcount, String ledpathsononeline)
 	{
 		//set default color order. 4 positions.
@@ -178,7 +187,7 @@ public class ChargingLEDLib
 				continue;
 			}
 		}//while
-		
+
 		//use the last color for all the remaining slots, i.e for the Hero it will be: Green, Amber  +Amber+Amber
 		for (int i = 1; i < colorOrder.length; i++)
 		{
@@ -192,7 +201,7 @@ public class ChargingLEDLib
 			Log.i(TAG, "Colors= " + colorOrder[0] + " " + colorOrder[1] + " " + colorOrder[2] + " " + colorOrder[3] + " ");
 		}
 	}
-	
+
 	private void assignPathsBasedOnColorOrder()
 	{
 		//assign paths corresponding to ColorOrder
@@ -209,37 +218,41 @@ public class ChargingLEDLib
 			}
 		}
 		ledpaths = temp;
-		
+
 		if (DEBUG)
 		{
 			for (int i = 0; i < ledpaths.length; i++)
 				Log.i(TAG, "Color[" + i + "]=" + colorOrder[i] + "\tpath[" + i + "] =" + ledpaths[i] + "\n");
 		}
 	}
-	
+
 	private boolean isWriteable(String file)
 	{
 		File f = new File(file);
 		return f.canWrite();
 	}
-	
+
 	private String detectLEDs()
 	{
 		ShellCommand cmd = new ShellCommand();
 		CommandResult r = cmd.sh.runWaitFor("find /sys/devices/ -name \"brightness\"");
 		String result = "";
-		
+
 		if (!r.success())
 		{
 			//try su. need root to run find on some phones!
-			CommandResult r1 = cmd.su.runWaitFor("find /sys/devices/ -name \"brightness\"");
-			if (!r1.success())
+			ShellCommand sc= new ShellCommand();
+			if(sc.canSU())
 			{
-				Log.d(TAG, "Error in detectLEDs: " + r.stderr);
-			}
-			else
-			{
-				result = r1.stdout;
+				CommandResult r1 = cmd.su.runWaitFor("find /sys/devices/ -name \"brightness\"");
+				if (!r1.success())
+				{
+					Log.d(TAG, "Error in detectLEDs: " + r.stderr);
+				}
+				else
+				{
+					result = r1.stdout;
+				}
 			}
 		}
 		else
@@ -249,38 +262,38 @@ public class ChargingLEDLib
 		}
 		return result;
 	}
-	
+
 	/**
 	 * turn off all known LEDs
 	 */
 	public void turnOffAllLEDs()
 	{
-		if (CPUStatusLED.noLEDs) return;
+		if (ChargingLEDLib.noLEDs) return;
 		for (int i = 0; i < ledpaths.length; i++)
 			runShellCommand(ECHO_0 + ledpaths[i]);
 	}
-	
+
 	/**
 	 * set the charging LED color appropriately
-	 * 
+	 *
 	 * @author britoso
 	 * @param totalCPUInt
 	 *            the cpu usage percent
 	 */
 	public void setLEDColor(int totalCPUInt)
 	{
-		if (CPUStatusLED.disabledLEDs || CPUStatusLED.noLEDs) return;//dont do anything
-		
+		if (CPUStatusLED.disabledLEDs || ChargingLEDLib.noLEDs) return;//dont do anything
+
 		if (DEBUG) Log.d(TAG, "CPU=" + totalCPUInt);
-		
-		if (ledpaths == null || ledpaths.length == 0)
+
+		//workaround for bug causing the ledpaths to be null.
+		if (ledpaths == null || ledpaths.length == 0 ||ledpaths[0].length()==0)
 		{
-			initialize();
-			turnOffAllLEDs();
+			readPrefs();
 		}
-		
+
 		int threshhold = getThreshHold(totalCPUInt);
-		
+
 		if (threshhold != lastThreshhold)
 		{
 			if (lastThreshhold >= 0)
@@ -293,9 +306,9 @@ public class ChargingLEDLib
 			}
 			lastThreshhold = threshhold;
 		}
-		
+
 	}
-	
+
 	private int getThreshHold(int totalCPUInt)
 	{
 		if (totalCPUInt <= thresholds[0])
@@ -320,7 +333,7 @@ public class ChargingLEDLib
 		}
 		return -1;
 	}
-	
+
 	private boolean runShellCommand(String command)
 	{
 		try
@@ -347,15 +360,93 @@ public class ChargingLEDLib
 		}
 		return true;
 	}
-	
+
 	public String [] getColorOrder()
 	{
 		return colorOrder;
 	}
-	
+
 	public void setColorOrder(String [] colorOrder)
 	{
 		ChargingLEDLib.colorOrder = colorOrder;
 		assignPathsBasedOnColorOrder();
 	}
+
+	public static Context context;
+	//private static boolean prefsRead=false;
+	
+	/*read shared preferences, fall back to initialize() which auto-detects*/
+	public void readPrefs()
+	{
+		//if (prefsRead) return;
+		SharedPreferences settings=null;
+		try
+		{
+			settings = PreferenceManager.getDefaultSharedPreferences(context);
+		}
+		catch(Exception e)
+		{
+			Log.i(TAG,"No saved preferences found");
+		}
+		if(settings==null)
+		{
+			initialize();
+			return;//prefs dont exist, stop reading.
+		}			
+		//read shellOpenCommand, thresholds, colorOrder, ledpaths, availableLEDs
+		String shell = settings.getString("shell", null);
+		if (shell != null)
+		{
+			ChargingLEDLib.shellOpenCommand = shell;
+			if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: shell=" + shell);
+		}
+		else
+		{
+			initialize();
+			return;//prefs dont exist, stop reading.
+		}
+
+		int i = 0;
+		int availLEDCount = 0;
+		String colorOrder[] = new String[ChargingLEDLib.MAX_SUPPORTED_COLORS];
+		String [] tempLEDColor = new String[10];
+		//try to read 4 values
+		while (i < ChargingLEDLib.MAX_SUPPORTED_COLORS)
+		{
+			String color, ledpath;
+			int threshold;
+			color = settings.getString("color" + i, null);
+			if (color != null) colorOrder[i] = color;
+
+			threshold = settings.getInt("threshold" + i, -1);
+			if (threshold >= 0) ChargingLEDLib.thresholds[i] = threshold;
+
+			ledpath = settings.getString("ledpath" + i, null);
+			if (ledpath != null) ChargingLEDLib.ledpaths[i] = ledpath;
+
+			String availLED = settings.getString("availableLED" + i, null);
+			if (availLED != null)
+			{
+				tempLEDColor[availLEDCount++] = availLED;
+			}
+
+			i++;
+		}
+		setColorOrder(colorOrder);
+		if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: colorOrder=" + colorOrder[0] + "  " + colorOrder[1] + "  " + colorOrder[2] + "  " + colorOrder[3]);
+		if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: ledpaths=" + ChargingLEDLib.ledpaths[0] + "  " + ChargingLEDLib.ledpaths[1] + "  "
+				+ ChargingLEDLib.ledpaths[2] + "  " + ChargingLEDLib.ledpaths[3]);
+		if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: thresholds=" + ChargingLEDLib.thresholds[0] + "  " + ChargingLEDLib.thresholds[1] + "  "
+				+ ChargingLEDLib.thresholds[2] + "  " + ChargingLEDLib.thresholds[3]);
+		ChargingLEDLib.availableLEDs = new String[availLEDCount];
+		for (int j = 0; j < availLEDCount; j++)
+		{
+			ChargingLEDLib.availableLEDs[j] = tempLEDColor[j];
+			if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: availableLED=" + ChargingLEDLib.availableLEDs[j]);
+		}
+
+		turnOffAllLEDs();
+		//prefsRead=true;
+	}
+
 }
