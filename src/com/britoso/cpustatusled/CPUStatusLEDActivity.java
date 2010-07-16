@@ -79,7 +79,7 @@ public class CPUStatusLEDActivity extends Activity implements OnSeekBarChangeLis
 
 		String colors[]= lib.getColorOrder();
 		if (colors==null ||colors.length==0)
-		{ 
+		{
 			showExitContinueAlert("No LEDs were detected. Do you want to exit? The app will run without LEDs too.");//exit or continue
 		}
 		if(lib.canSU==false && ChargingLEDLib.shellOpenCommand.equals(ChargingLEDLib.ROOT_SHELL))
@@ -296,9 +296,9 @@ public class CPUStatusLEDActivity extends Activity implements OnSeekBarChangeLis
 						//mConnection.mService.stopSelf();
 						mConnection.mService.stopService(getIntent());
 						CPUStatusLEDActivity.this.finish();
-						//System.exit(0);
+						System.exit(0);
 					}
-				}).setNegativeButton("Continue", 
+				}).setNegativeButton("Continue",
 						new DialogInterface.OnClickListener()
 							{
 								public void onClick(DialogInterface dialog, int id)
