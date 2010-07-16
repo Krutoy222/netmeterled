@@ -32,7 +32,7 @@ public class ChargingLEDLib
 
 
 	//reused
-	public final static boolean DEBUG = true;
+	public final static boolean DEBUG = false;
 	// keep the console used to issue commands open. more efficient
 	private static Process console = null;
 	private static DataOutputStream os = null;
@@ -40,8 +40,8 @@ public class ChargingLEDLib
 	static int lastThreshhold = 0;
 	public static boolean noLEDs = false;
 	public boolean canSU=false;//used to warn the user
-	
-	
+
+
 
 	//prefs
 	public static int [] thresholds =
@@ -92,7 +92,7 @@ public class ChargingLEDLib
 		setDefaultColorOrder(ledcount, ledpathsononeline);
 
 		if (colorOrder[0] == null)
-		{ 
+		{
 			ChargingLEDLib.noLEDs=true;
 		}
 
@@ -107,23 +107,23 @@ public class ChargingLEDLib
 			}
 			else
 			{
-				shellOpenCommand = ROOT_SHELL;			
+				shellOpenCommand = ROOT_SHELL;
 			}
 		}
 		Log.i(TAG, "Shell = " + shellOpenCommand);
 		checkIfSUWorks();
 
 	}
-	
+
 	private void checkIfSUWorks()
 	{
 		if(shellOpenCommand.equals(ROOT_SHELL) && canSU==false)
 		{
 			ShellCommand sc = new ShellCommand();
 			canSU=sc.canSU();
-		}		
+		}
 	}
-	
+
 	private void setDefaultColorOrder(int ledcount, String ledpathsononeline)
 	{
 		//set default color order. 4 positions.
@@ -379,7 +379,7 @@ public class ChargingLEDLib
 
 	public static Context context;
 	//private static boolean prefsRead=false;
-	
+
 	/*read shared preferences, fall back to initialize() which auto-detects*/
 	public void readPrefs()
 	{
@@ -397,7 +397,7 @@ public class ChargingLEDLib
 		{
 			initialize();
 			return;//prefs dont exist, stop reading.
-		}			
+		}
 		//read shellOpenCommand, thresholds, colorOrder, ledpaths, availableLEDs
 		String shell = settings.getString("shell", null);
 		if (shell != null)
@@ -453,7 +453,7 @@ public class ChargingLEDLib
 		turnOffAllLEDs();
 		//prefsRead=true;
 	}
-	
+
 	/**
 	 * Save to sharedPrerefences: shellOpenCommand, thresholds, colorOrder,
 	 * ledpaths, availableLEDs
@@ -476,6 +476,6 @@ public class ChargingLEDLib
 			e.putString("availableLED" + i, ChargingLEDLib.availableLEDs[i]);
 		}
 		e.commit();
-	}	
+	}
 
 }

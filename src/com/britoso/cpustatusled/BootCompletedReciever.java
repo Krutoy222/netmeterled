@@ -16,8 +16,7 @@ public class BootCompletedReciever extends BroadcastReceiver
 	public void onReceive(Context context, Intent intentin)
 	{
 		//start the service.
-		Intent serviceIntent = new Intent();
-		serviceIntent.setAction("com.britoso.cpustatusled.CPUStatusLEDService");
+		Intent serviceIntent = new Intent(context,CPUStatusLEDService.class);
 		context.startService(serviceIntent);
 		Toast.makeText(context, "CPUStatusLED service started.", Toast.LENGTH_SHORT).show();
 	}
