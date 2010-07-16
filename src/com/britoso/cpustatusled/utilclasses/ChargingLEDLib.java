@@ -39,6 +39,8 @@ public class ChargingLEDLib
 	static CPUStatusLEDActivity gui1;
 	static int lastThreshhold = 0;
 	public static boolean noLEDs = false;
+	public boolean canSU=false;//used to warn the user
+	
 	
 
 	//prefs
@@ -109,16 +111,19 @@ public class ChargingLEDLib
 			}
 		}
 		Log.i(TAG, "Shell = " + shellOpenCommand);
+		checkIfSUWorks();
+
+	}
+	
+	private void checkIfSUWorks()
+	{
 		if(shellOpenCommand.equals(ROOT_SHELL) && canSU==false)
 		{
 			ShellCommand sc = new ShellCommand();
 			canSU=sc.canSU();
-		}
-
+		}		
 	}
 	
-	public boolean canSU=false;//used to warn the user
-
 	private void setDefaultColorOrder(int ledcount, String ledpathsononeline)
 	{
 		//set default color order. 4 positions.
@@ -444,7 +449,7 @@ public class ChargingLEDLib
 			ChargingLEDLib.availableLEDs[j] = tempLEDColor[j];
 			if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: availableLED=" + ChargingLEDLib.availableLEDs[j]);
 		}
-
+		checkIfSUWorks();
 		turnOffAllLEDs();
 		//prefsRead=true;
 	}
