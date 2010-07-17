@@ -65,7 +65,7 @@ public class ChargingLEDLib
 		Log.i(TAG, "Phone Model=" + android.os.Build.MODEL);
 
 		//leds
-		String ledpathsononeline = detectLEDs();
+		String ledpathsononeline = detectLEDpaths();
 		int ledcount = 0;
 		ledpaths = ledpathsononeline.trim().split("\n");
 
@@ -91,13 +91,14 @@ public class ChargingLEDLib
 		//set colorOrder;
 		setDefaultColorOrder(ledcount, ledpathsononeline);
 
-		if (colorOrder[0] == null)
+		if (colorOrder[0] == null ||ledpaths==null || ledpaths.length==0)
 		{
 			ChargingLEDLib.noLEDs=true;
 		}
 
 		//uses sets ledpaths based on the colorOrder
-		assignPathsBasedOnColorOrder();
+		if(ChargingLEDLib.noLEDs==false)
+			assignPathsBasedOnColorOrder();
 
 		if (ledpaths.length > 0)
 		{
@@ -111,7 +112,7 @@ public class ChargingLEDLib
 			}
 		}
 		Log.i(TAG, "Shell = " + shellOpenCommand);
-		checkIfSUWorks();
+		if (shellOpenCommand == ROOT_SHELL)checkIfSUWorks();//set canSU
 
 	}
 
@@ -237,11 +238,17 @@ public class ChargingLEDLib
 		return f.canWrite();
 	}
 
-	private String detectLEDs()
+	private String detectLEDpaths()
 	{
+		String result = "";
+
+		if(android.os.Build.MODEL.equalsIgnoreCase("HTC Desire"))
+		{
+			//su not needed, but cant run find!
+			return "/sys/devices/platform/leds-microp/leds/green/brightness\n/sys/devices/platform/leds-microp/leds/blue/brightness\n/sys/devices/platform/leds-microp/leds/amber/brightness";			
+		}
 		ShellCommand cmd = new ShellCommand();
 		CommandResult r = cmd.sh.runWaitFor("find /sys/devices/ -name \"brightness\"");
-		String result = "";
 
 		if (!r.success())
 		{
@@ -404,6 +411,7 @@ public class ChargingLEDLib
 		{
 			ChargingLEDLib.shellOpenCommand = shell;
 			if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: shell=" + shell);
+			if (shellOpenCommand == ROOT_SHELL)checkIfSUWorks();//set canSU
 		}
 		else
 		{
@@ -449,7 +457,6 @@ public class ChargingLEDLib
 			ChargingLEDLib.availableLEDs[j] = tempLEDColor[j];
 			if (ChargingLEDLib.DEBUG) Log.i(TAG, "Read: availableLED=" + ChargingLEDLib.availableLEDs[j]);
 		}
-		checkIfSUWorks();
 		turnOffAllLEDs();
 		//prefsRead=true;
 	}
