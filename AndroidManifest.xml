@@ -5,7 +5,8 @@
 	android:versionCode="7" 
 	android:versionName="@string/app_version">
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
+	<uses-permission android:name="android.permission.RAISED_THREAD_PRIORITY" />
+	
 	<application android:icon="@drawable/icon" 
 	android:label="@string/app_name">
 		<receiver android:name=".BootCompletedReciever">
