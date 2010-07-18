@@ -82,8 +82,9 @@ public class CPUStatusLEDActivity extends Activity implements OnSeekBarChangeLis
 		{
 			showExitContinueAlert("No LEDs were detected. Do you want to exit? The app will run without LEDs too.");//exit or continue
 		}
-		if(lib.canSU==false && ChargingLEDLib.shellOpenCommand.equals(ChargingLEDLib.ROOT_SHELL))
+		if(ChargingLEDLib.canSU==false && ChargingLEDLib.shellOpenCommand.equals(ChargingLEDLib.ROOT_SHELL))
 		{
+			//ChargingLEDLib.canSU = (new ShellCommand()).canSU(true);
 			showExitContinueAlert("SuperUser (su) is needed and was not found. Do you want to exit? The app will run without LEDs too.");
 		}
 		//Log.i(TAG, "onCreate");
