@@ -39,7 +39,7 @@ public class ChargingLEDLib
 	static CPUStatusLEDActivity gui1;
 	static int lastThreshhold = 0;
 	public static boolean noLEDs = false;
-	public boolean canSU=false;//used to warn the user
+	public static boolean canSU=false;//used to warn the user
 
 
 
@@ -121,7 +121,7 @@ public class ChargingLEDLib
 		if(shellOpenCommand.equals(ROOT_SHELL) && canSU==false)
 		{
 			ShellCommand sc = new ShellCommand();
-			canSU=sc.canSU();
+			canSU=sc.canSU(true);//force
 		}
 	}
 
