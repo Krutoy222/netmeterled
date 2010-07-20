@@ -38,6 +38,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.britoso.cpustatusled.utilclasses.ChargingLEDLib;
+import com.britoso.cpustatusled.utilclasses.ShellCommand;
 
 /**
  *
@@ -84,8 +85,10 @@ public class CPUStatusLEDActivity extends Activity implements OnSeekBarChangeLis
 		}
 		if(ChargingLEDLib.canSU==false && ChargingLEDLib.shellOpenCommand.equals(ChargingLEDLib.ROOT_SHELL))
 		{
-			//ChargingLEDLib.canSU = (new ShellCommand()).canSU(true);
-			showExitContinueAlert("SuperUser (su) is needed and was not found. Do you want to exit? The app will run without LEDs too.");
+			//recheck
+			ChargingLEDLib.canSU = (new ShellCommand()).canSU(true);
+			if (ChargingLEDLib.canSU==false)
+				showExitContinueAlert("SuperUser (su) is needed and was not found. Do you want to exit? The app will run without LEDs too.");
 		}
 		//Log.i(TAG, "onCreate");
 	}
