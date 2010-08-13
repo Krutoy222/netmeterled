@@ -32,7 +32,7 @@ public class ChargingLEDLib
 
 
 	//reused
-	public final static boolean DEBUG = false;
+	public final static boolean DEBUG = true;
 	// keep the console used to issue commands open. more efficient
 	private static Process console = null;
 	private static DataOutputStream os = null;
