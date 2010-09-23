@@ -61,8 +61,8 @@ public class CPUStatusLEDActivity extends Activity implements OnSeekBarChangeLis
 	 * Service connection callback object used to establish communication with
 	 * the service after binding to it.
 	 */
-	private myServiceConnection mConnection;
-
+	private MyServiceConnection mConnection;
+	 
 	/**
 	 * Framework method called when the activity is first created.
 	 * */
@@ -75,7 +75,7 @@ public class CPUStatusLEDActivity extends Activity implements OnSeekBarChangeLis
 		lib.readPrefs();
 		setContentView(R.layout.layout);
 		startService(new Intent(this, CPUStatusLEDService.class));
-		mConnection = new myServiceConnection(this);
+		mConnection = new MyServiceConnection(this);
 		if (cpuStatusChart == null) cpuStatusChart = new CPUStatusChart();
 
 		String colors[]= lib.getColorOrder();

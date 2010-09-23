@@ -5,12 +5,12 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
-public class myServiceConnection implements ServiceConnection
+public class MyServiceConnection implements ServiceConnection
 {
 	public CPUStatusLEDService mService;
 	CPUStatusLEDActivity activity;
 	
-	myServiceConnection(CPUStatusLEDActivity activity)
+	MyServiceConnection(CPUStatusLEDActivity activity)
 	{
 		this.activity = activity;
 	}

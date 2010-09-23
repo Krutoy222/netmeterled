@@ -9,6 +9,8 @@
 	
 	<application android:icon="@drawable/icon" 
 	android:label="@string/app_name">
+		<receiver  android:process=":remote" android:name="AlarmReciever"></receiver>		
+	
 		<receiver android:name=".BootCompletedReciever">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED" />
