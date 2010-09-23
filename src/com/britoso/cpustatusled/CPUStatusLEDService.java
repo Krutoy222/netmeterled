@@ -10,12 +10,15 @@
  */
 package com.britoso.cpustatusled;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -91,6 +94,14 @@ public class CPUStatusLEDService extends Service
 		mHandler.postDelayed(mRefresh, SAMPLING_INTERVAL * 1000);
 		//monitor signal strength
 		signalListener = new myPhoneStateListener();
+		
+        // Schedule the alarm!, runs even in deep sleep. 2% CPU usage or below
+        Intent intent = new Intent(this.getApplicationContext(), AlarmReciever.class);
+        intent.putExtra("alarm_message", "fire");
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 12345, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+        am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), 3000, pendingIntent);	
+
 	}
 	
 	/**
